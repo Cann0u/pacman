@@ -17,21 +17,16 @@ class Button:
 		surface.blit(font.render(self.text, False, "white"), (w_x / (100 / self.width) - lenght / 2, w_y / (100 / self.height) - height / 2))
 
 
-class Render:
-	def  __init__(self):
-		pygame.init()
-		self.surface = pygame.display.set_mode((1920, 1080))
-		pygame.RESIZABLE
-		self.run = True
-		self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
+class Menu:
+	def __init__(self, activate: bool, surface, font):
+		self.state = activate
+		self.image = pygame.image.load("sprite/canvas.png")
 		self.button = []
-		self.menu = True
 		self.focus = 0
+		self.font = font
+		self.surface = surface
 
-	def on_event(self, event: pygame.event.Event):
-		if event.type == pygame.QUIT:
-			self.run = False
-		if self.menu:
+	def event(self, event):
 			self.button[self.focus].focus = True
 			if event.type == pygame.KEYDOWN:
 				match event.key:
@@ -49,14 +44,33 @@ class Render:
 					case pygame.K_SPACE:
 						self.button[self.focus].func()
 
-	def on_render(self):
+	def draw(self):
 		for button in self.button:
 			button.draw(self.surface, self.font)
 
+class Render:
+	def  __init__(self):
+		pygame.init()
+		self.surface = pygame.display.set_mode((1920, 1080))
+		pygame.RESIZABLE
+		self.run = True
+		self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
+		self.menu = Menu(True, self.surface, self.font)
+
+	def on_event(self, event: pygame.event.Event):
+		if event.type == pygame.QUIT:
+			self.run = False
+		if self.menu.state:
+			self.menu.event(event)
+
+	def on_render(self):
+		if self.menu.state:
+			self.menu.draw()
+
 	def on_exec(self):
-		self.button.append(Button("1 PLAYER", 55, 50, print))
-		self.button.append(Button("2 PLAYERS", 65, 50, print))
-		self.button.append(Button("EXIT", 75, 50, self.quit))
+		self.menu.button.append(Button("1 PLAYER", 55, 50, print))
+		self.menu.button.append(Button("2 PLAYERS", 65, 50, print))
+		self.menu.button.append(Button("EXIT", 75, 50, self.quit))
 		while self.run:
 			for event in pygame.event.get():
 				self.on_event(event)
