@@ -7,10 +7,13 @@ class Button:
 		self.width = width
 		self.height = height
 		self.func = func
+		self.focus = False
 
 	def draw(self, surface: pygame.Surface, font: pygame.font.Font):
 		w_x, w_y = pygame.display.get_window_size()
 		lenght, height = font.size(self.text)
+		if self.focus:
+			surface.blit(font.render("> ", False, "white"), (w_x / (100 / 30), w_y / (100 / self.height) - height / 2))
 		surface.blit(font.render(self.text, False, "white"), (w_x / (100 / self.width) - lenght / 2, w_y / (100 / self.height) - height / 2))
 
 
@@ -29,15 +32,20 @@ class Render:
 		if event.type == pygame.QUIT:
 			self.run = False
 		if self.menu:
+			self.button[self.focus].focus = True
 			if event.type == pygame.KEYDOWN:
 				match event.key:
 					case pygame.K_DOWN:
+						self.button[self.focus].focus = False
 						self.focus = (self.focus + 1) % len(self.button)
+						self.button[self.focus].focus = True
 					case pygame.K_UP:
+						self.button[self.focus].focus = False
 						if self.focus == 0:
 							self.focus = len(self.button) - 1
 						else:
 							self.focus = self.focus - 1
+							self.button[self.focus].focus = True
 					case pygame.K_SPACE:
 						self.button[self.focus].func()
 
