@@ -1,5 +1,6 @@
 import pygame
 from typing import Tuple
+import json
 
 class Button:
 	def __init__(self, text: str, height: int, width: int, func: callable):
@@ -13,7 +14,7 @@ class Button:
 		w_x, w_y = pygame.display.get_window_size()
 		lenght, height = font.size(self.text)
 		if self.focus:
-			surface.blit(font.render("> ", False, "white"), (w_x / (100 / 30), w_y / (100 / self.height) - height / 2))
+			surface.blit(font.render("> ", False, "white"), (w_x / (100 / 40), w_y / (100 / self.height) - height / 2))
 		surface.blit(font.render(self.text, False, "white"), (w_x / (100 / self.width) - lenght / 2, w_y / (100 / self.height) - height / 2))
 
 
@@ -25,6 +26,9 @@ class Menu:
 		self.focus = 0
 		self.font = font
 		self.surface = surface
+		with open("score/score.json") as file:
+			self.score = json.load(file)
+
 
 	def event(self, event):
 			self.button[self.focus].focus = True
@@ -45,6 +49,14 @@ class Menu:
 						self.button[self.focus].func()
 
 	def draw(self):
+		w_x, w_y = pygame.display.get_window_size()
+		i_x, i_y = self.image.get_size()
+		self.surface.blit(self.image, (w_x / 2 - i_x / 2, 20))
+		lst_width = [25, 50, 75]
+		for i, key in enumerate(self.score):
+			lenght, height = self.font.size(key)
+			self.surface.blit(self.font.render(key, False, "crimson"), (w_x / (100 / lst_width[i]) - lenght / 2, 5))
+			self.surface.blit(self.font.render(str(self.score[key]), False, "white"), (w_x / (100 / lst_width[i]) - lenght / 4, 5 + height))
 		for button in self.button:
 			button.draw(self.surface, self.font)
 
