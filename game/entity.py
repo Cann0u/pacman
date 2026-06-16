@@ -3,7 +3,7 @@ import pygame
 
 
 class Entity:
-    def __init__(self, pos: Tuple, sprite: pygame.Surface):
+    def __init__(self, pos: Tuple, coord: Tuple, sprite: pygame.Surface):
         self.pos = pos
         self.surface = sprite
 
