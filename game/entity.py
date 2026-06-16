@@ -1,10 +1,11 @@
-import pygame
 from typing import Tuple
+import pygame
 
 
 class Entity:
-    def __init__(self, pos: Tuple):
+    def __init__(self, pos: Tuple, sprite: pygame.Surface):
         self.pos = pos
+        self.surface = sprite
 
     def check_collapse(self):
         ...
