@@ -1,4 +1,6 @@
 import pygame
+from game.game import Game
+from game.pacman import Pacman
 from typing import Tuple
 import json
 
@@ -38,6 +40,9 @@ class Menu:
         self.surface = surface
         with open("score/score.json") as file:
             self.score = json.load(file)
+
+    def loop(self):
+        pass
 
     def event(self, event):
         self.button[self.focus].focus = True
@@ -84,25 +89,65 @@ class Render:
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
         self.menu = Menu(True, self.surface, self.font)
+        self.state = self.menu
+        self.clock = pygame.time.Clock()
 
     def on_event(self, event: pygame.event.Event):
         if event.type == pygame.QUIT:
             self.run = False
-        if self.menu.state:
-            self.menu.event(event)
+        self.state.event(event)
 
     def on_render(self):
-        if self.menu.state:
-            self.menu.draw()
+        self.state.draw()
+        self.clock.tick(60)
+
+    def launch1(self):
+        self.state = Game(1, True, self.surface, self.font)
+        w_x, w_y = pygame.display.get_window_size()
+        self.state.add_entity(
+            Pacman(
+                (0, 0),
+                (0, 0),
+                (w_x / 2, w_y / 2),
+                pygame.Rect(w_x / 2, w_y / 2, 100, 100),
+                1,
+            )
+        )
+
+    def launch2(self):
+        self.state = Game(2, True, self.surface, self.font)
+        w_x, w_y = pygame.display.get_window_size()
+        self.state.add_entity(
+            Pacman(
+                (0, 0),
+                (0, 0),
+                (w_x / 2, w_y / 2),
+                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
+                1,
+            )
+        )
+        self.state.add_entity(
+            Pacman(
+                (0, 0),
+                (0, 0),
+                (w_x / 2 + 20, w_y / 2),
+                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
+                2,
+            )
+        )
+
+    def on_loop(self):
+        self.state.loop()
 
     def on_exec(self):
-        self.menu.button.append(Button("1 PLAYER", 55, 50, print))
-        self.menu.button.append(Button("2 PLAYERS", 65, 50, print))
+        self.menu.button.append(Button("1 PLAYER", 55, 50, self.launch1))
+        self.menu.button.append(Button("2 PLAYERS", 65, 50, self.launch2))
         self.menu.button.append(Button("EXIT", 75, 50, self.quit))
         while self.run:
             for event in pygame.event.get():
                 self.on_event(event)
             self.surface.fill("black")
+            self.on_loop()
             self.on_render()
             pygame.display.update()
 

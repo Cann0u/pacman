@@ -14,6 +14,20 @@ class Entity:
     def check_collapse(self): ...
 
     def moove_on(self):
-        p_x, p_y = self.pos
+        p_x, p_y = self.coord
         d_x, d_y = self.moove
-        self.pos = d_x + p_x, d_y + p_y
+        w_x, w_y = pygame.display.get_window_size()
+        if p_x + d_x < 0:
+            self.coord = 0, d_y + p_y
+        elif p_y + d_y < 0:
+            self.coord = d_x + p_x, 0
+        else:
+            self.coord = d_x + p_x, d_y + p_y
+        if isinstance(self.surface, pygame.Rect):
+            self.surface.left, self.surface.top = self.coord
+
+    def draw(self, surface):
+        ...
+
+    def event(self, event):
+        ...
