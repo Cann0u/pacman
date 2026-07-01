@@ -1,7 +1,6 @@
 import pygame
 from game.game import Game
 from game.pacman import Pacman
-from typing import Tuple
 import json
 
 
