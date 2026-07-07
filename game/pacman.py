@@ -43,6 +43,5 @@ class Pacman(Entity):
                 pygame.draw.rect(surface, "white", self.surface)
             else:
                 pygame.draw.rect(surface, "red", self.surface)
-            print("ici")
         else:
             surface.blit(self.surface, self.coord)
