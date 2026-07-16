@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 import pygame
 
 
@@ -11,7 +11,7 @@ class Entity:
         self.surface = sprite
         self.moove = moove
 
-    def check_collapse(self): ...
+    def check_collapse(self, entity: List): ...
 
     def moove_on(self):
         p_x, p_y = self.coord

@@ -1,6 +1,7 @@
 import pygame
 from game.game import Game
 from game.pacman import Pacman
+from game.pacgum import PacGum
 import json
 
 
@@ -108,9 +109,19 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 100, 100),
+                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 1,
+                self.font
             )
+        )
+        self.state.add_entity(
+            PacGum(
+                    (0, 0),
+                    (0, 0),
+                    (w_x / 2 - 50, w_y / 2 - 50),
+                    pygame.Rect(w_x / 2, w_y / 2, 8, 8),
+                    10
+                )
         )
 
     def launch2(self):
@@ -121,17 +132,19 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
+                pygame.Rect(w_x / 2, w_y / 2, 40, 40),
                 1,
+                self.font,
             )
         )
         self.state.add_entity(
             Pacman(
                 (0, 0),
                 (0, 0),
-                (w_x / 2 + 20, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
+                (w_x / 2 + 200, w_y / 2),
+                pygame.Rect(w_x / 2, w_y / 2, 40, 40),
                 2,
+                self.font,
             )
         )
 

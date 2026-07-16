@@ -1,5 +1,6 @@
 import pygame
 from .entity import Entity
+from .pacgum import PacGum
 
 
 class Game:
@@ -23,7 +24,14 @@ class Game:
             ent.event(event)
 
     def loop(self):
-        for ent in self.entity:
+        for i, ent in enumerate(self.entity):
+            if isinstance(ent, PacGum):
+                if ent.taken:
+                    self.entity.pop(i)
+                    continue
+            entity = self.entity.copy()
+            entity.pop(i)
+            ent.check_collapse(entity)
             ent.moove_on()
 
     def draw(self):
