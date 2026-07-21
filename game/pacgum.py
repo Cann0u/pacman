@@ -10,9 +10,10 @@ class PacGum(Entity):
         moove: Tuple,
         coord: Tuple,
         sprite: pygame.Surface,
-        score: int
+        score: int,
+        hitbox
     ):
-        super().__init__(pos, moove, coord, sprite)
+        super().__init__(pos, moove, coord, sprite, hitbox)
         self.score = score
         self.taken = False
 

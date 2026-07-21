@@ -1,14 +1,13 @@
 import pygame
 from .entity import Entity
 from typing import List
-from .pacgum import PacGum
 
 
 class Pacman(Entity):
     def __init__(
-        self, pos, moove, coord, sprite, player: int, font: pygame.font.Font
+        self, pos, moove, coord, sprite, player: int, font: pygame.font.Font, hitbox
     ):
-        super().__init__(pos, moove, coord, sprite)
+        super().__init__(pos, moove, coord, sprite, hitbox)
         self.player = player
         self.score = 0
         self.font = font
@@ -42,35 +41,14 @@ class Pacman(Entity):
                     case pygame.K_w:
                         self.moove = (0, -2)
 
-    def check_collapse(self, entity: List[Entity]):
-        x, y = self.coord
-        m_x, m_y = self.moove
-        x, y = x + m_x, y + m_y
-        if isinstance(self.surface, pygame.Rect):
-            s_x, s_y = self.surface.size
-        else:
-            s_x, s_y = self.surface.get_size()
-        for ent in entity:
-            ent_x, ent_y = ent.coord
-            if isinstance(ent.surface, pygame.Rect):
-                s_ent_x, s_ent_y = ent.surface.size
-            else:
-                s_ent_x, s_ent_y = ent.surface.get_size()
-            if (
-                ent_x <= x + s_x <= ent_x + s_ent_x
-                and ent_y <= y + s_y <= ent_y + s_ent_y
-                or ent_x <= x <= ent_x + s_ent_x
-                and ent_y <= y <= ent_y + s_ent_y
-                or ent_x <= x <= ent_x + s_ent_x
-                and ent_y <= y + s_y <= ent_y + s_ent_y
-                or ent_x <= x + s_x <= ent_x + s_ent_x
-                and ent_y <= y <= ent_y + s_ent_y
-            ):
-                if isinstance(ent, PacGum):
-                    self.score += ent.score
-                    ent.taken = True
-                else:
-                    self.moove = 0, 0
+    def check_entity(self, entity: List[Entity]):
+        ent = self.check_collapse(entity)
+        from .pacgum import PacGum
+        if isinstance(ent, PacGum):
+            self.score += ent.score
+            ent.taken = True
+        if  isinstance(ent, Pacman):
+            self.moove = 0, 0
 
     def draw(self, surface: pygame.Surface):
         if isinstance(self.surface, pygame.Rect):
@@ -78,7 +56,6 @@ class Pacman(Entity):
                 pygame.draw.rect(surface, "white", self.surface)
             else:
                 pygame.draw.rect(surface, "red", self.surface)
-            print("ici")
         else:
             surface.blit(self.surface, self.coord)
         w_x, w_y = pygame.display.get_window_size()
@@ -88,5 +65,5 @@ class Pacman(Entity):
             width = 75
         surface.blit(
             self.font.render(str(self.score), False, "white"),
-            (w_x / (100 / width), 150),
+            (w_x / (100 / width), 0),
         )

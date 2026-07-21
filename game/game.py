@@ -31,10 +31,10 @@ class Game:
                     continue
             entity = self.entity.copy()
             entity.pop(i)
-            ent.check_collapse(entity)
+            if not isinstance(ent, PacGum):
+                ent.check_entity(entity)
             ent.moove_on()
 
     def draw(self):
-        print(self.entity)
         for ent in self.entity:
             ent.draw(self.surface)

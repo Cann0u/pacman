@@ -111,7 +111,8 @@ class Render:
                 (w_x / 2, w_y / 2),
                 pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 1,
-                self.font
+                self.font,
+                (16, 16)
             )
         )
         self.state.add_entity(
@@ -120,7 +121,8 @@ class Render:
                     (0, 0),
                     (w_x / 2 - 50, w_y / 2 - 50),
                     pygame.Rect(w_x / 2, w_y / 2, 8, 8),
-                    10
+                    10,
+                    (8, 8)
                 )
         )
 
@@ -132,9 +134,10 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 40, 40),
+                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 1,
                 self.font,
+                (16,16)
             )
         )
         self.state.add_entity(
@@ -142,9 +145,10 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2 + 200, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 40, 40),
+                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 2,
                 self.font,
+                (16,  16)
             )
         )
 
