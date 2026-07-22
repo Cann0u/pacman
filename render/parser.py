@@ -1,7 +1,9 @@
 import json
 
+
 class ParsingError(Exception):
     ...
+
 
 class Parser:
     def __init__(self, file):

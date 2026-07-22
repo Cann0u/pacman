@@ -55,6 +55,7 @@ class Entity:
                         and y - h_y / 2 <= e_y + he_y / 2
                     ):
                         return ent
+        return None
 
     def moove_on(self):
         p_x, p_y = self.coord

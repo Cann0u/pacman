@@ -1,7 +1,6 @@
 import pygame
 from game.game import Game
 from game.pacman import Pacman
-from game.pacgum import PacGum
 import json
 from .parser import Parser
 
@@ -143,37 +142,6 @@ class Render:
     def launch1(self):
         self.state = Game(1, True, self.surface, self.font, self.parser.info)
         w_x, w_y = pygame.display.get_window_size()
-        self.state.add_entity(
-            Pacman(
-                (1, 1),
-                (0, 0),
-                (w_x / 2, w_y / 2),
-                None,
-                1,
-                self.font,
-                (16, 16),
-            )
-        )
-        self.state.add_entity(
-            PacGum(
-                (15, 15),
-                (0, 0),
-                (w_x / 2 - 50, w_y / 2 - 50),
-                None,
-                10,
-                (8, 8),
-            )
-        )
-        self.state.add_entity(
-            PacGum(
-                (0, 0),
-                (0, 0),
-                (w_x / 2, w_y / 2 - 50),
-                None,
-                10,
-                (8, 8),
-            )
-        )
 
     def launch2(self):
         self.state = Game(2, True, self.surface, self.font, self.parser.info)
