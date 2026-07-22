@@ -60,11 +60,15 @@ class Game:
             if isinstance(ent, PacGum):
                 pacgum += 1
         if pacgum == 0:
+            pacman = []
             while self.entity != []:
-                self.entity.pop()
-            self.generate_level()
+                ent = self.entity.pop()
+                if isinstance(ent, Pacman):
+                    pacman.append(ent)
+            self.entity += pacman
+            self.generate_level(pacman)
 
-    def generate_level(self):
+    def generate_level(self, pacman: list[Pacman] = None):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
                 height=self.info["level"]["height"],
@@ -78,19 +82,27 @@ class Game:
         self.map = Map(self.maze.maze)
         self.map.create()
         self.add_entity(self.map.entity)
-        for i in range(1, self.player + 1):
-            self.add_entity(
-                Pacman(
-                    (19 + i * 2, 21),
-                    (0, 0),
-                    self.map.start,
-                    None,
-                    1,
-                    self.font,
-                    (16, 16),
-                    self.info["lives"],
+        if not pacman:
+            for i in range(1, self.player + 1):
+                self.add_entity(
+                    Pacman(
+                        (21, 19 + i * 2),
+                        (0, 0),
+                        self.map.start,
+                        None,
+                        i,
+                        self.font,
+                        (16, 16),
+                        self.info["lives"],
+                        0
+                    )
                 )
-            )
+        else:
+            for pac in pacman:
+                x, y = pac.spawn
+                pac.pos = x, y
+                c_x, c_y = self.map.start
+                pac.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
         valid = self.check_valid()
         if self.info["pacgum"] > len(valid):
             raise ValueError("To many PacGum")

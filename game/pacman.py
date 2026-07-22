@@ -14,15 +14,16 @@ class Pacman(Entity):
         player: int,
         font: pygame.font.Font,
         hitbox,
-        live
+        live,
+        score
     ):
         super().__init__(pos, moove, coord, sprite, hitbox)
         self.player = player
-        self.score = 0
+        self.score = score
         self.font = font
         x, y = self.pos
+        self.spawn = x, y
         c_x, c_y = self.coord
-        self.start = c_x, c_y
         self.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
         self.live = live
         self.next = (0, 0)
@@ -89,7 +90,7 @@ class Pacman(Entity):
                     case pygame.K_s:
                         prev = m_x, m_y = self.moove
                         self.moove = (0, 2)
-                        ent = self.check_en(entity)
+                        ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (0, 2)
@@ -108,8 +109,8 @@ class Pacman(Entity):
         next = m_x, m_y
         if m_x != 0 or m_y != 0:
             self.moove = next
-            n_ent = self.check_collapse(entity)
-            if isinstance(n_ent, Wall):
+            ent = self.check_collapse(entity)
+            if isinstance(ent, Pacman) or isinstance(ent, Wall):
                 self.moove = prev
 
     def check_entity(self, entity: List[Entity]):
@@ -135,7 +136,12 @@ class Pacman(Entity):
             width = 10
         else:
             width = 90
+        w, height = self.font.size("live: " + str(self.live))
+        surface.blit(
+            self.font.render("live: " + str(self.live), False, "white"),
+            (w_x / (100 / width) - w / 2, 0),
+        )
         surface.blit(
             self.font.render(str(self.score), False, "white"),
-            (w_x / (100 / width), 0),
+            (w_x / (100 / width), height + height / 2),
         )
