@@ -5,6 +5,29 @@ from game.pacgum import PacGum
 import json
 
 
+class Image:
+    def __init__(self, image, coord, size):
+        self.image_raw = image
+        self.coord = coord
+        self.w, self.h = self.image_raw.get_size()
+        self.size = size
+        self.image = pygame.transform.scale(
+            self.image_raw, (self.w * size, self.h * (size))
+        )
+        self.w, self.h = self.image.get_size()
+
+    def draw(self, surface):
+        w_x, w_y = pygame.display.get_window_size()
+        x, y = self.coord
+        surface.blit(
+            self.image,
+            (
+                w_x / 2 + x - self.w / 2,
+                w_y / 3 + y - self.h / 2,
+            ),
+        )
+
+
 class Button:
     def __init__(self, text: str, height: int, width: int, func: callable):
         self.text = text
@@ -17,23 +40,28 @@ class Button:
         w_x, w_y = pygame.display.get_window_size()
         lenght, height = font.size(self.text)
         if self.focus:
+            f_lenght, f_height = font.size("> ")
             surface.blit(
-                font.render("> ", False, "white"),
-                (w_x / (100 / 40), w_y / (100 / self.height) - height / 2),
+                font.render("> " + self.text, False, "white"),
+                (
+                    w_x / (100 / self.width) - lenght / 2 - f_lenght,
+                    w_y / (100 / self.height) - height / 2,
+                ),
             )
-        surface.blit(
-            font.render(self.text, False, "white"),
-            (
-                w_x / (100 / self.width) - lenght / 2,
-                w_y / (100 / self.height) - height / 2,
-            ),
-        )
+        else:
+            surface.blit(
+                font.render(self.text, False, "white"),
+                (
+                    w_x / (100 / self.width) - lenght / 2,
+                    w_y / (100 / self.height) - height / 2,
+                ),
+            )
 
 
 class Menu:
     def __init__(self, activate: bool, surface, font):
         self.state = activate
-        self.image = pygame.image.load("sprite/canvas.png")
+        self.images = []
         self.button = []
         self.focus = 0
         self.font = font
@@ -64,8 +92,6 @@ class Menu:
 
     def draw(self):
         w_x, w_y = pygame.display.get_window_size()
-        i_x, i_y = self.image.get_size()
-        self.surface.blit(self.image, (w_x / 2 - i_x / 2, 20))
         lst_width = [25, 50, 75]
         for i, key in enumerate(self.score):
             lenght, height = self.font.size(key)
@@ -77,6 +103,8 @@ class Menu:
                 self.font.render(str(self.score[key]), False, "white"),
                 (w_x / (100 / lst_width[i]) - lenght / 4, 5 + height),
             )
+        for img in self.images:
+            img.draw(self.surface)
         for button in self.button:
             button.draw(self.surface, self.font)
 
@@ -84,7 +112,10 @@ class Menu:
 class Render:
     def __init__(self):
         pygame.init()
-        self.surface = pygame.display.set_mode((1920, 1080))
+        info = pygame.display.Info()
+        self.surface = pygame.display.set_mode(
+            (info.current_w, info.current_h)
+        )
         pygame.RESIZABLE
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
@@ -112,18 +143,28 @@ class Render:
                 pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 1,
                 self.font,
-                (16, 16)
+                (16, 16),
             )
         )
         self.state.add_entity(
             PacGum(
-                    (0, 0),
-                    (0, 0),
-                    (w_x / 2 - 50, w_y / 2 - 50),
-                    pygame.Rect(w_x / 2, w_y / 2, 8, 8),
-                    10,
-                    (8, 8)
-                )
+                (0, 0),
+                (0, 0),
+                (w_x / 2 - 50, w_y / 2 - 50),
+                pygame.Rect(w_x / 2, w_y / 2, 8, 8),
+                10,
+                (8, 8),
+            )
+        )
+        self.state.add_entity(
+            PacGum(
+                (0, 0),
+                (0, 0),
+                (w_x / 2, w_y / 2 - 50),
+                pygame.Rect(w_x / 2, w_y / 2, 8, 8),
+                10,
+                (8, 8),
+            )
         )
 
     def launch2(self):
@@ -137,7 +178,7 @@ class Render:
                 pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 1,
                 self.font,
-                (16,16)
+                (16, 16),
             )
         )
         self.state.add_entity(
@@ -148,7 +189,7 @@ class Render:
                 pygame.Rect(w_x / 2, w_y / 2, 16, 16),
                 2,
                 self.font,
-                (16,  16)
+                (16, 16),
             )
         )
 
@@ -159,6 +200,9 @@ class Render:
         self.menu.button.append(Button("1 PLAYER", 55, 50, self.launch1))
         self.menu.button.append(Button("2 PLAYERS", 65, 50, self.launch2))
         self.menu.button.append(Button("EXIT", 75, 50, self.quit))
+        self.menu.images.append(
+            Image(pygame.image.load("sprite/canvas.png"), (0, 0), 0.75)
+        )
         while self.run:
             for event in pygame.event.get():
                 self.on_event(event)
