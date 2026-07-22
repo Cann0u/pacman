@@ -112,7 +112,10 @@ class Menu:
 class Render:
     def __init__(self):
         pygame.init()
-        self.surface = pygame.display.set_mode((1920, 1080))
+        info = pygame.display.Info()
+        self.surface = pygame.display.set_mode(
+            (info.current_w, info.current_h)
+        )
         pygame.display.set_caption("PACMAN")
         pygame.RESIZABLE
         self.run = True
