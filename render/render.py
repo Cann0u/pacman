@@ -3,6 +3,7 @@ from game.game import Game
 from game.pacman import Pacman
 from game.pacgum import PacGum
 import json
+from .parser import Parser
 
 
 class Image:
@@ -59,14 +60,14 @@ class Button:
 
 
 class Menu:
-    def __init__(self, activate: bool, surface, font):
+    def __init__(self, activate: bool, surface, font, file):
         self.state = activate
         self.images = []
         self.button = []
         self.focus = 0
         self.font = font
         self.surface = surface
-        with open("score/score.json") as file:
+        with open(file) as file:
             self.score = json.load(file)
 
     def loop(self):
@@ -110,7 +111,7 @@ class Menu:
 
 
 class Render:
-    def __init__(self):
+    def __init__(self, file):
         pygame.init()
         info = pygame.display.Info()
         self.surface = pygame.display.set_mode(
@@ -118,9 +119,15 @@ class Render:
         )
         pygame.display.set_caption("PACMAN")
         pygame.RESIZABLE
+        self.parser = Parser(file)
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
-        self.menu = Menu(True, self.surface, self.font)
+        self.menu = Menu(
+            True,
+            self.surface,
+            self.font,
+            self.parser.info["highscore_filename"],
+        )
         self.state = self.menu
         self.clock = pygame.time.Clock()
 
@@ -134,14 +141,14 @@ class Render:
         self.clock.tick(60)
 
     def launch1(self):
-        self.state = Game(1, True, self.surface, self.font)
+        self.state = Game(1, True, self.surface, self.font, self.parser.info)
         w_x, w_y = pygame.display.get_window_size()
         self.state.add_entity(
             Pacman(
-                (0, 0),
+                (1, 1),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
+                None,
                 1,
                 self.font,
                 (16, 16),
@@ -149,10 +156,10 @@ class Render:
         )
         self.state.add_entity(
             PacGum(
-                (0, 0),
+                (15, 15),
                 (0, 0),
                 (w_x / 2 - 50, w_y / 2 - 50),
-                pygame.Rect(w_x / 2, w_y / 2, 8, 8),
+                None,
                 10,
                 (8, 8),
             )
@@ -162,21 +169,21 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2, w_y / 2 - 50),
-                pygame.Rect(w_x / 2, w_y / 2, 8, 8),
+                None,
                 10,
                 (8, 8),
             )
         )
 
     def launch2(self):
-        self.state = Game(2, True, self.surface, self.font)
+        self.state = Game(2, True, self.surface, self.font, self.parser.info)
         w_x, w_y = pygame.display.get_window_size()
         self.state.add_entity(
             Pacman(
-                (0, 0),
+                (20, 20),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
+                None,
                 1,
                 self.font,
                 (16, 16),
@@ -187,7 +194,7 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2 + 200, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
+                None,
                 2,
                 self.font,
                 (16, 16),

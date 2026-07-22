@@ -1,16 +1,31 @@
 import pygame
 from .entity import Entity
+from .map import Wall
 from typing import List
 
 
 class Pacman(Entity):
     def __init__(
-        self, pos, moove, coord, sprite, player: int, font: pygame.font.Font, hitbox
+        self,
+        pos,
+        moove,
+        coord,
+        sprite,
+        player: int,
+        font: pygame.font.Font,
+        hitbox,
     ):
         super().__init__(pos, moove, coord, sprite, hitbox)
         self.player = player
         self.score = 0
         self.font = font
+        x, y = self.pos
+        c_x, c_y = self.coord
+        self.ent_coord = x * 20 + 2, y * 20 + 2
+        if not sprite:
+            self.surface = pygame.Rect(self.ent_coord, self.hitbox)
+        else:
+            self.surface = sprite
 
     def eat_pacgum(self, map):
         s_x, s_y = self.pos
@@ -44,18 +59,19 @@ class Pacman(Entity):
     def check_entity(self, entity: List[Entity]):
         ent = self.check_collapse(entity)
         from .pacgum import PacGum
+
         if isinstance(ent, PacGum):
             self.score += ent.score
             ent.taken = True
-        if  isinstance(ent, Pacman):
+        if isinstance(ent, Pacman) or isinstance(ent, Wall):
             self.moove = 0, 0
 
     def draw(self, surface: pygame.Surface):
         if isinstance(self.surface, pygame.Rect):
             if self.player == 1:
-                pygame.draw.rect(surface, "white", self.surface)
+                pygame.draw.rect(surface, "yellow", self.surface)
             else:
-                pygame.draw.rect(surface, "red", self.surface)
+                pygame.draw.rect(surface, "darkblue", self.surface)
         else:
             surface.blit(self.surface, self.coord)
         w_x, w_y = pygame.display.get_window_size()

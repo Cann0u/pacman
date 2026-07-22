@@ -1,10 +1,20 @@
 import pygame
 from .entity import Entity
 from .pacgum import PacGum
+from .map import Map
+from .pacman import Pacman
+import mazegen
 
 
 class Game:
-    def __init__(self, player, activate: bool, surface: pygame.Surface, font):
+    def __init__(
+        self,
+        player,
+        activate: bool,
+        surface: pygame.Surface,
+        font,
+        info,
+    ):
         self.player = player
         self.state = activate
         self.button = []
@@ -12,6 +22,18 @@ class Game:
         self.font = font
         self.surface = surface
         self.entity = []
+        self.maze = mazegen.MazeGenerator(
+            mazegen.MazeConfig(
+                height=info["level"]["height"],
+                width=info["level"]["width"],
+                entry_coord=(0, 0),
+                exit_coord=(1, 0),
+                output_file="output.txt"
+            )
+        )
+        self.map = Map(self.maze.generate())
+        self.map.create()
+        self.add_entity(self.map.entity)
 
     def add_entity(self, entity: Entity | list):
         if isinstance(entity, list):
@@ -31,7 +53,7 @@ class Game:
                     continue
             entity = self.entity.copy()
             entity.pop(i)
-            if not isinstance(ent, PacGum):
+            if isinstance(ent, Pacman):
                 ent.check_entity(entity)
             ent.moove_on()
 

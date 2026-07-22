@@ -20,7 +20,7 @@ class PacGum(Entity):
     def draw(self, surface: pygame.Surface):
         if not self.taken:
             if isinstance(self.surface, pygame.Rect):
-                pygame.draw.rect(surface, "lightblue", self.surface)
+                pygame.draw.rect(surface, "white", self.surface)
             else:
                 surface.blit(self.surface, self.coord)
 

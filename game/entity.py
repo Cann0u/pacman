@@ -1,41 +1,60 @@
 from typing import Tuple, List
 import pygame
-import math
+
 
 class Entity:
     def __init__(
-        self, pos: Tuple, moove: Tuple, coord: Tuple, sprite: pygame.Surface, hitbox
+        self,
+        pos: Tuple,
+        moove: Tuple,
+        coord: Tuple,
+        sprite: pygame.Surface = None,
+        hitbox: Tuple = (0, 0),
     ):
         self.pos = pos
         self.coord = coord
-        self.surface = sprite
         self.moove = moove
         self.hitbox = hitbox
+        if not sprite:
+            self.surface = pygame.Rect(self.coord, self.hitbox)
+        else:
+            self.surface = sprite
 
     def check_collapse(self, entity: List):
         x, y = self.coord
         m_x, m_y = self.moove
         h_x, h_y = self.hitbox
-        x, y = x + h_x / 2 + m_x, y + h_y / 2 + m_y 
+        x, y = x + h_x / 2 + m_x, y + h_y / 2 + m_y
         for ent in entity:
             e_x, e_y = ent.coord
             he_x, he_y = ent.hitbox
             e_x, e_y = e_x + he_x / 2, e_y + he_y / 2
             if x <= e_x:
                 if y <= e_y:
-                    if x + h_x / 2 >= e_x - he_x / 2 and y + h_y / 2 >= e_y - he_y / 2:
+                    if (
+                        x + h_x / 2 >= e_x - he_x / 2
+                        and y + h_y / 2 >= e_y - he_y / 2
+                    ):
                         return ent
                 if y >= e_y:
-                    if x + h_x / 2 >= e_x - he_x / 2 and y - h_y / 2 <= e_y + he_y / 2:
+                    if (
+                        x + h_x / 2 >= e_x - he_x / 2
+                        and y - h_y / 2 <= e_y + he_y / 2
+                    ):
                         return ent
             if x >= e_x:
                 if y <= e_y:
-                    if x - h_x / 2 <= e_x + he_x / 2 and y + h_y / 2 >= e_y - he_y / 2:
+                    if (
+                        x - h_x / 2 <= e_x + he_x / 2
+                        and y + h_y / 2 >= e_y - he_y / 2
+                    ):
                         return ent
                 if y >= e_y:
-                    if x - h_x / 2 <= e_x + he_x / 2 and y - h_y / 2 <= e_y + he_y / 2:
+                    if (
+                        x - h_x / 2 <= e_x + he_x / 2
+                        and y - h_y / 2 <= e_y + he_y / 2
+                    ):
                         return ent
-                        
 
     def moove_on(self):
         p_x, p_y = self.coord
@@ -50,8 +69,6 @@ class Entity:
         if isinstance(self.surface, pygame.Rect):
             self.surface.left, self.surface.top = self.coord
 
-    def draw(self, surface):
-        ...
+    def draw(self, surface): ...
 
-    def event(self, event):
-        ...
+    def event(self, event): ...
