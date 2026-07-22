@@ -4,7 +4,15 @@ from render import Render
 
 def main():
     print("Hello from pacman!")
-    maze = mazegen.MazeGenerator(mazegen.MazeConfig(height=25, width=25,  entry_coord=(0, 0), exit_coord=(1, 0), output_file="output.txt"))
+    maze = mazegen.MazeGenerator(
+        mazegen.MazeConfig(
+            height=25,
+            width=25,
+            entry_coord=(0, 0),
+            exit_coord=(1, 0),
+            output_file="output.txt",
+        )
+    )
     maze.generate()
     render = Render()
     for line in maze.maze:

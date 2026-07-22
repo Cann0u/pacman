@@ -112,10 +112,8 @@ class Menu:
 class Render:
     def __init__(self):
         pygame.init()
-        info = pygame.display.Info()
-        self.surface = pygame.display.set_mode(
-            (info.current_w, info.current_h)
-        )
+        self.surface = pygame.display.set_mode((1920, 1080))
+        pygame.display.set_caption("PACMAN")
         pygame.RESIZABLE
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
@@ -140,7 +138,7 @@ class Render:
                 (0, 0),
                 (0, 0),
                 (w_x / 2, w_y / 2),
-                pygame.Rect(w_x / 2, w_y / 2, 16, 16),
+                pygame.Rect(w_x / 2, w_y / 2, 10, 10),
                 1,
                 self.font,
                 (16, 16),
