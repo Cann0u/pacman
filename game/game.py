@@ -45,9 +45,9 @@ class Game:
         pacgum = 0
         for i, ent in enumerate(self.entity):
             if isinstance(ent, PacGum):
+                pacgum += 1
                 if ent.taken:
                     self.entity.pop(i)
-                    continue
             entity = self.entity.copy()
             entity.pop(i)
             if isinstance(ent, Pacman):
@@ -57,8 +57,6 @@ class Game:
                 ent.pos = (e_x - s_x) // 20, (e_y - s_y) // 20
                 ent.check_next(entity)
             ent.moove_on()
-            if isinstance(ent, PacGum):
-                pacgum += 1
         if pacgum == 0:
             pacman = []
             while self.entity != []:
