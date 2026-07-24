@@ -1,5 +1,5 @@
 import pygame
-from game.game import Game
+from game.game import Game, End
 import json
 from .parser import Parser
 
@@ -64,6 +64,7 @@ class Menu:
         self.button = []
         self.focus = 0
         self.font = font
+        self.end = False
         self.surface = surface
         with open(file) as file:
             self.score = json.load(file)
@@ -91,17 +92,6 @@ class Menu:
 
     def draw(self):
         w_x, w_y = pygame.display.get_window_size()
-        lst_width = [25, 50, 75]
-        for i, key in enumerate(self.score):
-            lenght, height = self.font.size(key)
-            self.surface.blit(
-                self.font.render(key, False, "crimson"),
-                (w_x / (100 / lst_width[i]) - lenght / 2, 5),
-            )
-            self.surface.blit(
-                self.font.render(str(self.score[key]), False, "white"),
-                (w_x / (100 / lst_width[i]) - lenght / 4, 5 + height),
-            )
         for img in self.images:
             img.draw(self.surface)
         for button in self.button:
@@ -146,16 +136,65 @@ class Render:
         self.state = Game(2, True, self.surface, self.font, self.parser.info)
         w_x, w_y = pygame.display.get_window_size()
 
-    def on_loop(self):
-        self.state.loop()
+    def skip(self):
+        pass
 
-    def on_exec(self):
-        self.menu.button.append(Button("1 PLAYER", 55, 50, self.launch1))
-        self.menu.button.append(Button("2 PLAYERS", 65, 50, self.launch2))
-        self.menu.button.append(Button("EXIT", 75, 50, self.quit))
-        self.menu.images.append(
+    def highscore(self):
+        self.state = Menu(
+            True,
+            self.surface,
+            self.font,
+            self.parser.info["highscore_filename"],
+        )
+        self.state.button.append(
+            Button(
+                "HIGHSCORE :",
+                13,
+                50,
+                self.skip,
+            )
+        )
+        with open(self.parser.info["highscore_filename"]) as file:
+            dict = json.load(file)
+            for i, user in enumerate(dict["hi_score"]):
+                self.state.button.append(
+                    Button(
+                        f"{user} : {dict['hi_score'][user]}",
+                        20 + 7 * i,
+                        50,
+                        self.skip,
+                    )
+                )
+
+        self.state.button.append(Button("BACK", 90, 50, self.start))
+
+    def start(self):
+        self.state = Menu(
+            True,
+            self.surface,
+            self.font,
+            self.parser.info["highscore_filename"],
+        )
+        self.state.button.append(Button("1 PLAYER", 55, 50, self.launch1))
+        self.state.button.append(Button("2 PLAYERS", 65, 50, self.launch2))
+        self.state.button.append(Button("HIGHSCORE", 75, 50, self.highscore))
+        self.state.button.append(Button("EXIT", 85, 50, self.quit))
+        self.state.images.append(
             Image(pygame.image.load("sprite/canvas.png"), (0, 0), 0.75)
         )
+
+    def on_loop(self):
+        self.state.loop()
+        if self.state.end:
+            if isinstance(self.state, Game):
+                self.state = End(self.state)
+                return
+            if isinstance(self.state, End):
+                self.start()
+                return
+
+    def on_exec(self):
+        self.start()
         while self.run:
             for event in pygame.event.get():
                 self.on_event(event)

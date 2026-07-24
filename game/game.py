@@ -3,6 +3,7 @@ from .entity import Entity
 from .pacgum import PacGum
 from .map import Map
 from .pacman import Pacman
+import json
 import mazegen
 import random
 
@@ -25,6 +26,9 @@ class Game:
         self.entity = []
         self.info = info
         self.generate_level()
+        self.time = 200
+        self.start_time = pygame.time.get_ticks()
+        self.end = False
 
     def add_entity(self, entity: Entity | list):
         if isinstance(entity, list):
@@ -42,12 +46,18 @@ class Game:
                 ent.event(event)
 
     def loop(self):
+        if self.end:
+            return
+        if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
+            self.end = True
+            return
         pacgum = 0
         for i, ent in enumerate(self.entity):
             if isinstance(ent, PacGum):
                 pacgum += 1
                 if ent.taken:
                     self.entity.pop(i)
+                    continue
             entity = self.entity.copy()
             entity.pop(i)
             if isinstance(ent, Pacman):
@@ -65,6 +75,7 @@ class Game:
                     pacman.append(ent)
             self.entity += pacman
             self.generate_level(pacman)
+            self.start_time = pygame.time.get_ticks()
 
     def generate_level(self, pacman: list[Pacman] = None):
         self.maze = mazegen.MazeGenerator(
@@ -92,7 +103,7 @@ class Game:
                         self.font,
                         (16, 16),
                         self.info["lives"],
-                        0
+                        0,
                     )
                 )
         else:
@@ -133,5 +144,77 @@ class Game:
         return valid
 
     def draw(self):
+        time = self.time - (pygame.time.get_ticks() - self.start_time) // 1000
+        self.surface.blit(
+            self.font.render(str(time), False, "white"), (0, 800)
+        )
         for ent in self.entity:
             ent.draw(self.surface)
+
+
+class End:
+    def __init__(self, state: Game):
+        self.score = sum(
+            [i.score for i in state.entity if isinstance(i, Pacman)]
+        )
+        self.surface = state.surface
+        self.font = state.font
+        self.end = False
+        self.name = ""
+        self.letter = 0
+        self.player = state.player
+        self.hi_score = state.info["highscore_filename"]
+        with open(self.hi_score) as file:
+            self.d_score = json.load(file)
+        self.d_score = dict(
+            sorted(self.d_score["hi_score"].items(), key=lambda item: item[1])
+        )
+
+    def loop(self): ...
+
+    def event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                if (
+                    min(self.d_score.values()) < self.score
+                    or len(self.d_score.values()) < 10
+                ):
+                    if self.player == 1:
+                        self.d_score[self.name] = self.score
+                    else:
+                        self.d_score["duo " + self.name] = self.score
+                self.d_score = dict(
+                    sorted(
+                        self.d_score.items(),
+                        key=lambda item: item[1],
+                        reverse=True,
+                    )
+                )
+                if len(self.d_score) > 10:
+                    self.d_score = {
+                        j: self.d_score[j]
+                        for i, j in enumerate(self.d_score)
+                        if i < 10
+                    }
+                with open(self.hi_score, "w") as file:
+                    json.dump({"hi_score": self.d_score}, file, indent=4)
+                self.end = True
+            if event.key < 255 and len(self.name) < 5:
+                self.name += chr(event.key)
+
+    def draw(self):
+        w_x, w_y = pygame.display.get_window_size()
+        f_x, f_y = self.font.size("GAME OVER")
+        self.surface.blit(
+            self.font.render("GAME OVER", False, "red"),
+            (w_x / 2 - f_x, w_y / 2 - f_y),
+        )
+        f_x, f_y = self.font.size("Name : ")
+        self.surface.blit(
+            self.font.render("Name :", False, "white"),
+            (w_x / 2 - f_x, w_y / 2 + f_y),
+        )
+        self.surface.blit(
+            self.font.render(self.name, False, "white"),
+            (w_x / 2, w_y / 2 + f_y),
+        )

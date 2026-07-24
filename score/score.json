@@ -1,5 +1,14 @@
 {
-	"1up": 2140,
-	"hi-score": 10000,
-	"2up": 0
+    "hi_score": {
+        "raph": 1260,
+        "benoit": 100,
+        "flo": 90,
+        "coube": 60,
+        "moi": 60,
+        "duo dick": 40,
+        "nono": 40,
+        "truie": 40,
+        "benou": 30,
+        "toi": 20
+    }
 }
