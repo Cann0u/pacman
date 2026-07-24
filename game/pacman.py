@@ -27,6 +27,7 @@ class Pacman(Entity):
         self.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
         self.live = live
         self.next = (0, 0)
+        self.hit_ghost = False
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:
@@ -116,10 +117,14 @@ class Pacman(Entity):
     def check_entity(self, entity: List[Entity]):
         ent = self.check_collapse(entity)
         from .pacgum import PacGum
+        from .ghosts import Ghost
 
         if isinstance(ent, PacGum):
             self.score += ent.score
             ent.taken = True
+        if isinstance(ent, Ghost):
+            self.live -= 1
+            self.hit_ghost = True
         if isinstance(ent, Pacman) or isinstance(ent, Wall):
             self.moove = 0, 0
 

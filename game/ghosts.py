@@ -12,11 +12,14 @@ BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 
 
 class Ghost(Entity):
-    def __init__(self, pos, coord, sprite, ghost: int, algo: Algo, hitbox=(16, 16)):
+    def __init__(self, pos, coord, sprite, ghost: int, algo: Algo, hitbox=(16, 16), speed=1.0):
         super().__init__(pos, (0, 0), coord, sprite, hitbox)
         self.ghost = ghost
         self.algo = algo
         self.direction = None
+        self.spawn = pos
+        self.speed = speed
+        self.move_accumulator = 0.0
 
     def compute_target(self, pacman_pos, pacman_dir, ghosts):
         p_x, p_y = pacman_pos

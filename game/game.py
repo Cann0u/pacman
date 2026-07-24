@@ -63,6 +63,7 @@ class Game:
 
             entity = self.entity.copy()
             entity.pop(i)
+            should_move = True
 
             if isinstance(ent, Pacman):
                 ent.check_entity(entity)
@@ -70,6 +71,13 @@ class Game:
                 s_x, s_y = self.map.start
                 ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
                 ent.check_next(entity)
+
+                if ent.hit_ghost:
+                    ent.hit_ghost = False
+                    if ent.live <= 0:
+                        self.end = True
+                    else:
+                        self.reset_positions()
 
             elif isinstance(ent, Ghost):
                 e_x, e_y = ent.coord
@@ -89,7 +97,13 @@ class Game:
                 if isinstance(ent.check_collapse(entity), Wall):
                     continue
 
-            ent.moove_on()
+                ent.move_accumulator += ent.speed
+                should_move = ent.move_accumulator >= 1
+                if should_move:
+                    ent.move_accumulator -= 1
+            
+            if should_move:
+                ent.moove_on()
 
         if pacgum == 0:
             pacman = []
@@ -100,6 +114,22 @@ class Game:
             self.entity += pacman
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
+
+    def closest_valid(self, valid, target):
+        t_x, t_y = target
+        best = min(valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2)
+        valid.remove(best)
+        return best
+
+    def get_corners(self):
+        height = len(self.maze.maze)
+        width = len(self.maze.maze[0])
+        return [
+            (0, 0),
+            (width - 1, 0),
+            (0, height - 1),
+            (width - 1, height - 1),
+        ]
 
     def generate_level(self, pacman: list[Pacman] = None, ghosts: list[Ghost] = None):
         self.maze = mazegen.MazeGenerator(
@@ -141,9 +171,11 @@ class Game:
         valid = self.check_valid()
 
         if not ghosts:
+            corners = self.get_corners()
             nb_ghosts = 4
             for i in range(1, nb_ghosts + 1):
-                ghost_spawn = valid.pop(random.randint(0, len(valid) - 1))
+                corner = corners[(i - 1) % len(corners)]
+                ghost_spawn = self.closest_valid(valid, corner)
                 g_x, g_y = ghost_spawn
                 c_x, c_y = self.map.start
                 self.add_entity(
@@ -153,15 +185,19 @@ class Game:
                         None,
                         i,
                         Algo(self.map),
+                        speed=0.75,
                     )
                 )
         else:
+            corners = self.get_corners()
             for ghost in ghosts:
-                ghost_spawn = valid.pop(random.randint(0, len(valid) - 1))
+                corner = corners[(ghost.ghost - 1) % len(corners)]
+                ghost_spawn = self.closest_valid(valid, corner)
                 g_x, g_y = ghost_spawn
                 c_x, c_y = self.map.start
                 ghost.pos = ghost_spawn
                 ghost.coord = g_x * 20 + c_x + 2, g_y * 20 + c_y + 2
+                ghost.spawn = ghost_spawn
                 ghost.algo = Algo(self.map)
                 self.add_entity(ghost)
 
@@ -194,6 +230,22 @@ class Game:
                     ):
                         valid.append((j, i))
         return valid
+
+    def reset_positions(self):
+        c_x, c_y = self.map.start
+        for ent in self.entity:
+            if isinstance(ent, Pacman):
+                x, y = ent.spawn
+                ent.pos = x, y
+                ent.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
+                ent.moove = (0, 0)
+                ent.next = (0, 0)
+            elif isinstance(ent, Ghost):
+                x, y = ent.spawn
+                ent.pos = x, y
+                ent.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
+                ent.moove = (0, 0)
+                ent.direction = None
 
     def draw(self):
         time = self.time - (pygame.time.get_ticks() - self.start_time) // 1000
