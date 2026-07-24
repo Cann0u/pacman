@@ -86,8 +86,13 @@ class Game:
 
                 aligned = (e_x - s_x - 2) % 20 == 0 and (e_y - s_y - 2) % 20 == 0
                 if aligned:
-                    pacman_ent = next((e for e in entity if isinstance(e, Pacman)), None)
-                    if pacman_ent:
+                    pacmans = [e for e in entity if isinstance(e, Pacman)]
+                    if pacmans:
+                        g_x, g_y = ent.pos
+                        pacman_ent = min(
+                            pacmans,
+                            key=lambda p: (p.pos[0] - g_x) ** 2 + (p.pos[1] - g_y) ** 2,
+                        )
                         p_dx, p_dy = pacman_ent.moove
                         pacman_dir = (p_dx // 2 if p_dx else 0, p_dy // 2 if p_dy else 0)
                         ghosts = [e for e in self.entity if isinstance(e, Ghost)]
