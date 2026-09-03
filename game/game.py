@@ -28,8 +28,8 @@ class Game:
         self.entity = []
         self.info = info
         self.level = 0
-        self.generate_level()
-        self.time = 200
+        self.generate_level(seed=self.info["seed"])
+        self.time = self.info["level_max_time"]
         self.start_time = pygame.time.get_ticks()
         self.end = None
         self.menu = Menu(False, self.surface, self.font, None)
@@ -99,7 +99,7 @@ class Game:
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
-    def generate_level(self, pacman: list[Pacman] = None):
+    def generate_level(self, pacman: list[Pacman] = None, seed: int = None):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
                 height=self.info["level"][self.level]["height"],
@@ -107,6 +107,7 @@ class Game:
                 entry_coord=(0, 0),
                 exit_coord=(1, 0),
                 output_file="output.txt",
+                seed=seed
             )
         )
         self.maze.generate()
