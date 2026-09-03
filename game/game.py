@@ -21,10 +21,12 @@ class Game:
         self.state = activate
         self.button = []
         self.focus = 0
+        self.pause = False
         self.font = font
         self.surface = surface
         self.entity = []
         self.info = info
+        self.level = 0
         self.generate_level()
         self.time = 200
         self.start_time = pygame.time.get_ticks()
@@ -37,6 +39,9 @@ class Game:
             self.entity.append(entity)
 
     def event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.paused()
         for i, ent in enumerate(self.entity):
             if isinstance(ent, Pacman):
                 entity = self.entity.copy()
@@ -74,14 +79,15 @@ class Game:
                 if isinstance(ent, Pacman):
                     pacman.append(ent)
             self.entity += pacman
+            self.level += 1
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
     def generate_level(self, pacman: list[Pacman] = None):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
-                height=self.info["level"]["height"],
-                width=self.info["level"]["width"],
+                height=self.info["level"][self.level]["height"],
+                width=self.info["level"][self.level]["width"],
                 entry_coord=(0, 0),
                 exit_coord=(1, 0),
                 output_file="output.txt",
@@ -157,6 +163,7 @@ class End:
         self.score = sum(
             [i.score for i in state.entity if isinstance(i, Pacman)]
         )
+        self.win
         self.surface = state.surface
         self.font = state.font
         self.end = False
@@ -204,11 +211,18 @@ class End:
 
     def draw(self):
         w_x, w_y = pygame.display.get_window_size()
-        f_x, f_y = self.font.size("GAME OVER")
-        self.surface.blit(
-            self.font.render("GAME OVER", False, "red"),
-            (w_x / 2 - f_x, w_y / 2 - f_y),
-        )
+        if self.win:
+            f_x, f_y = self.font.size("Vicotry")
+            self.surface.blit(
+                self.font.render("Victory", False, "green"),
+                (w_x / 2 - f_x, w_y / 2 - f_y),
+            )
+        else:
+            f_x, f_y = self.font.size("GAME OVER")
+            self.surface.blit(
+                self.font.render("GAME OVER", False, "red"),
+                (w_x / 2 - f_x, w_y / 2 - f_y),
+            )
         f_x, f_y = self.font.size("Name : ")
         self.surface.blit(
             self.font.render("Name :", False, "white"),
