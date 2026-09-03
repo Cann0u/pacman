@@ -20,9 +20,38 @@ class Image:
             self.image,
             (
                 w_x / 2 + x - self.w / 2,
-                w_y / 3 + y - self.h / 2,
+                w_y / 4 + y - self.h / 2,
             ),
         )
+
+
+class Text:
+    def __init__(self, text: str, height: int, width: int):
+        self.text = text
+        self.width = width
+        self.height = height
+        self.focus = False
+
+    def draw(self, surface: pygame.Surface, font: pygame.font.Font):
+        w_x, w_y = pygame.display.get_window_size()
+        lenght, height = font.size(self.text)
+        if self.focus:
+            f_lenght, f_height = font.size("> ")
+            surface.blit(
+                font.render("> " + self.text, False, "white"),
+                (
+                    w_x / (100 / self.width) - lenght / 2 - f_lenght,
+                    w_y / (100 / self.height) - height / 2,
+                ),
+            )
+        else:
+            surface.blit(
+                font.render(self.text, False, "white"),
+                (
+                    w_x / (100 / self.width) - lenght / 2,
+                    w_y / (100 / self.height) - height / 2,
+                ),
+            )
 
 
 class Button:
@@ -64,8 +93,10 @@ class Menu:
         self.font = font
         self.end = False
         self.surface = surface
-        with open(file) as file:
-            self.score = json.load(file)
+        self.text = []
+        if file:
+            with open(file) as file:
+                self.score = json.load(file)
 
     def loop(self):
         pass
@@ -94,3 +125,5 @@ class Menu:
             img.draw(self.surface)
         for button in self.button:
             button.draw(self.surface, self.font)
+        for text in self.text:
+            text.draw(self.surface, self.font)

@@ -6,6 +6,7 @@ from .pacman import Pacman
 import json
 import mazegen
 import random
+from render.menu import Menu, Button
 
 
 class Game:
@@ -30,7 +31,16 @@ class Game:
         self.generate_level()
         self.time = 200
         self.start_time = pygame.time.get_ticks()
-        self.end = False
+        self.end = None
+        self.menu = Menu(False, self.surface, self.font, None)
+        self.menu.button.append(Button("Resume", 50, 50, self.resume))
+        self.menu.button.append(Button("Exit", 60, 50, self.quit))
+
+    def quit(self):
+        self.end = "quit"
+
+    def resume(self):
+        self.pause = False
 
     def add_entity(self, entity: Entity | list):
         if isinstance(entity, list):
@@ -39,9 +49,12 @@ class Game:
             self.entity.append(entity)
 
     def event(self, event):
+        if self.pause:
+            self.menu.event(event)
+            return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.paused()
+                self.pause = True
         for i, ent in enumerate(self.entity):
             if isinstance(ent, Pacman):
                 entity = self.entity.copy()
@@ -51,10 +64,10 @@ class Game:
                 ent.event(event)
 
     def loop(self):
-        if self.end:
+        if self.end or self.pause:
             return
         if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
-            self.end = True
+            self.end = "end"
             return
         pacgum = 0
         for i, ent in enumerate(self.entity):
@@ -80,6 +93,9 @@ class Game:
                     pacman.append(ent)
             self.entity += pacman
             self.level += 1
+            if self.level == len(self.info["level"]):
+                self.end = "win"
+                return
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
@@ -150,20 +166,30 @@ class Game:
         return valid
 
     def draw(self):
+        if self.pause:
+            self.menu.draw()
+            return
+        w_x, w_y = pygame.display.get_window_size()
         time = self.time - (pygame.time.get_ticks() - self.start_time) // 1000
+        f_x, f_y = self.font.size(str(time))
         self.surface.blit(
-            self.font.render(str(time), False, "white"), (0, 800)
+            self.font.render(str(time), False, "white"),
+            (w_x - f_x, w_y - f_y * 4),
+        )
+        self.surface.blit(
+            self.font.render("level: " + str(self.level + 1), False, "white"),
+            (0, w_x // 2),
         )
         for ent in self.entity:
             ent.draw(self.surface)
 
 
 class End:
-    def __init__(self, state: Game):
+    def __init__(self, state: Game, win: bool):
         self.score = sum(
             [i.score for i in state.entity if isinstance(i, Pacman)]
         )
-        self.win
+        self.win = win
         self.surface = state.surface
         self.font = state.font
         self.end = False
@@ -212,7 +238,7 @@ class End:
     def draw(self):
         w_x, w_y = pygame.display.get_window_size()
         if self.win:
-            f_x, f_y = self.font.size("Vicotry")
+            f_x, f_y = self.font.size("Victory")
             self.surface.blit(
                 self.font.render("Victory", False, "green"),
                 (w_x / 2 - f_x, w_y / 2 - f_y),
