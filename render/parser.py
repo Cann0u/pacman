@@ -5,7 +5,7 @@ from pydantic import (
     field_validator,
     ValidatorFunctionWrapHandler,
     ValidationInfo,
-    ValidationError
+    ValidationError,
 )
 from typing import List
 
@@ -20,7 +20,9 @@ class Parser:
             with open(file) as f:
                 self.info = Info(**json.load(f))
         except Exception as e:
-            self.info = Info()
+            self.info = Info(
+                level=[{j: 20 for j in ["width", "height"]} for i in range(10)]
+            )
             print(f"Error while loding configuration file:\n{e}")
 
 
