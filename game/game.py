@@ -20,6 +20,7 @@ class Game:
         font,
         info,
     ):
+        self.wait = True
         self.player = player
         self.state = activate
         self.button = []
@@ -55,6 +56,8 @@ class Game:
             self.menu.event(event)
             return
         if event.type == pygame.KEYDOWN:
+            if self.wait:
+                self.wait = False
             if event.key == pygame.K_ESCAPE:
                 self.pause = True
         for i, ent in enumerate(self.entity):
@@ -65,10 +68,22 @@ class Game:
             else:
                 ent.event(event)
 
+    def player_dead(self):
+        count = 0
+        for ent in self.entity:
+            if isinstance(ent, Pacman):
+                if ent.live <= 0:
+                    count += 1
+        return count
+
     def loop(self):
-        if self.end or self.pause:
+        if self.end or self.pause or self.wait:
             return
         if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
+            for ent in self.entity:
+                if isinstance(ent, Pacman):
+                    ent.live -= 1
+        if self.player_dead() == self.player:
             self.end = "end"
             return
         pacgum = 0
@@ -92,9 +107,7 @@ class Game:
 
                 if ent.hit_ghost:
                     ent.hit_ghost = False
-                    if ent.live <= 0:
-                        self.end = True
-                    else:
+                    if ent.live > 0:
                         self.reset_positions()
 
             elif isinstance(ent, Ghost):
@@ -283,6 +296,8 @@ class Game:
         return valid
 
     def reset_positions(self):
+        self.wait = True
+        self.start_time = pygame.time.get_ticks()
         c_x, c_y = self.map.start
         for ent in self.entity:
             if isinstance(ent, Pacman):
@@ -303,7 +318,15 @@ class Game:
             self.menu.draw()
             return
         w_x, w_y = pygame.display.get_window_size()
-        time = self.time - (pygame.time.get_ticks() - self.start_time) // 1000
+        for ent in self.entity:
+            ent.draw(self.surface)
+        if not self.wait:
+            time = (
+                self.time - (pygame.time.get_ticks() - self.start_time) // 1000
+            )
+        else:
+            self.start_time = pygame.time.get_ticks()
+            time = self.time
         f_x, f_y = self.font.size(str(time))
         self.surface.blit(
             self.font.render(str(time), False, "white"),
@@ -313,8 +336,6 @@ class Game:
             self.font.render("level: " + str(self.level + 1), False, "white"),
             (0, w_x // 2),
         )
-        for ent in self.entity:
-            ent.draw(self.surface)
 
 
 class End:

@@ -1,4 +1,3 @@
-import mazegen
 import sys
 from render import Render
 
@@ -11,10 +10,6 @@ def main():
         return
     render = Render(sys.argv[1])
     render.on_exec()
-
-    from game.algo import Algo
-    algo = Algo(maze.maze)
-    print(algo.next_move((1,1), (2,1)))
 
 
 if __name__ == "__main__":

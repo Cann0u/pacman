@@ -129,6 +129,8 @@ class Pacman(Entity):
             self.moove = 0, 0
 
     def draw(self, surface: pygame.Surface):
+        if self.live <= 0:
+            return
         if isinstance(self.surface, pygame.Rect):
             if self.player == 1:
                 pygame.draw.rect(surface, "yellow", self.surface)
