@@ -60,16 +60,19 @@ class Render:
                 50
             )
         )
-        with open(self.parser.info["highscore_filename"]) as file:
-            dict = json.load(file)
-            for i, user in enumerate(dict["hi_score"]):
-                self.state.text.append(
-                    Text(
-                        f"{user} : {dict['hi_score'][user]}",
-                        20 + 7 * i,
-                        50
+        try:
+            with open(self.parser.info["highscore_filename"]) as file:
+                dict = json.load(file)
+                for i, user in enumerate(dict["hi_score"]):
+                    self.state.text.append(
+                        Text(
+                            f"{user} : {dict['hi_score'][user]}",
+                            20 + 7 * i,
+                            50
+                        )
                     )
-                )
+        except Exception as e:
+            print(e)
 
         self.state.button.append(Button("BACK", 90, 50, self.start))
 

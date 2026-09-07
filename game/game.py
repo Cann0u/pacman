@@ -198,18 +198,27 @@ class End:
         self.letter = 0
         self.player = state.player
         self.hi_score = state.info["highscore_filename"]
-        with open(self.hi_score) as file:
-            self.d_score = json.load(file)
-        self.d_score = dict(
-            sorted(self.d_score["hi_score"].items(), key=lambda item: item[1])
-        )
+        try:
+            with open(self.hi_score) as file:
+                self.d_score = json.load(file)
+            if self.d_score != {}:
+                self.d_score = dict(
+                    sorted(self.d_score["hi_score"].items(),
+                           key=lambda item: item[1]))
+        except Exception:
+            self.d_score = {}
 
     def loop(self): ...
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                if (
+                if self.d_score == {}:
+                    if self.player == 1:
+                        self.d_score[self.name] = self.score
+                    else:
+                        self.d_score["duo " + self.name] = self.score
+                elif (
                     min(self.d_score.values()) < self.score
                     or len(self.d_score.values()) < 10
                 ):

@@ -94,9 +94,6 @@ class Menu:
         self.end = False
         self.surface = surface
         self.text = []
-        if file:
-            with open(file) as file:
-                self.score = json.load(file)
 
     def loop(self):
         pass
