@@ -21,7 +21,7 @@ class Render:
             True,
             self.surface,
             self.font,
-            self.parser.info["highscore_filename"],
+            self.parser.info.highscore_filename,
         )
         self.state = self.menu
         self.clock = pygame.time.Clock()
@@ -51,7 +51,7 @@ class Render:
             True,
             self.surface,
             self.font,
-            self.parser.info["highscore_filename"],
+            self.parser.info.highscore_filename,
         )
         self.state.text.append(
             Text(
@@ -61,7 +61,7 @@ class Render:
             )
         )
         try:
-            with open(self.parser.info["highscore_filename"]) as file:
+            with open(self.parser.info.highscore_filename) as file:
                 dict = json.load(file)
                 for i, user in enumerate(dict["hi_score"]):
                     self.state.text.append(
@@ -100,7 +100,7 @@ class Render:
             True,
             self.surface,
             self.font,
-            self.parser.info["highscore_filename"],
+            self.parser.info.highscore_filename,
         )
         self.state.button.append(Button("1 PLAYER", 45, 50, self.launch1))
         self.state.button.append(Button("2 PLAYERS", 55, 50, self.launch2))

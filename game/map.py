@@ -19,6 +19,7 @@ class Map:
         self.maze = maze
         self.entity = []
         w_x, w_y = pygame.display.get_window_size()
+        print(len(maze))
         self.start = (
             w_x / 2 - len(self.maze[0]) / 2 * 20,
             w_y / 2 - len(self.maze) / 2 * 20,

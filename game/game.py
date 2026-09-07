@@ -28,8 +28,8 @@ class Game:
         self.entity = []
         self.info = info
         self.level = 0
-        self.generate_level(seed=self.info["seed"])
-        self.time = self.info["level_max_time"]
+        self.generate_level(seed=self.info.seed)
+        self.time = self.info.level_max_time
         self.start_time = pygame.time.get_ticks()
         self.end = None
         self.menu = Menu(False, self.surface, self.font, None)
@@ -93,7 +93,7 @@ class Game:
                     pacman.append(ent)
             self.entity += pacman
             self.level += 1
-            if self.level == len(self.info["level"]):
+            if self.level == len(self.info.level):
                 self.end = "win"
                 return
             self.generate_level(pacman)
@@ -102,12 +102,12 @@ class Game:
     def generate_level(self, pacman: list[Pacman] = None, seed: int = None):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
-                height=self.info["level"][self.level]["height"],
-                width=self.info["level"][self.level]["width"],
+                height=self.info.level[self.level].height,
+                width=self.info.level[self.level].width,
                 entry_coord=(0, 0),
                 exit_coord=(1, 0),
                 output_file="output.txt",
-                seed=seed
+                seed=seed,
             )
         )
         self.maze.generate()
@@ -118,14 +118,21 @@ class Game:
             for i in range(1, self.player + 1):
                 self.add_entity(
                     Pacman(
-                        (21, 19 + i * 2),
+                        (
+                            (
+                                self.info.level[self.level].width
+                                if self.info.level[self.level].width % 2 == 1
+                                else self.info.level[self.level].width + 1
+                            ),
+                            self.info.level[self.level].height + i * 2,
+                        ),
                         (0, 0),
                         self.map.start,
                         None,
                         i,
                         self.font,
                         (16, 16),
-                        self.info["lives"],
+                        self.info.lives,
                         0,
                     )
                 )
@@ -136,9 +143,9 @@ class Game:
                 c_x, c_y = self.map.start
                 pac.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
         valid = self.check_valid()
-        if self.info["pacgum"] > len(valid):
+        if self.info.pacgum > len(valid):
             raise ValueError("To many PacGum")
-        for i in range(self.info["pacgum"]):
+        for i in range(self.info.pacgum):
             idc = random.randint(0, len(valid) - 1)
             self.add_entity(
                 PacGum(
@@ -146,7 +153,7 @@ class Game:
                     (0, 0),
                     self.map.start,
                     None,
-                    self.info["points_per_pacgum"],
+                    self.info.points_per_pacgum,
                     (8, 8),
                 )
             )
@@ -197,14 +204,17 @@ class End:
         self.name = ""
         self.letter = 0
         self.player = state.player
-        self.hi_score = state.info["highscore_filename"]
+        self.hi_score = state.info.highscore_filename
         try:
             with open(self.hi_score) as file:
                 self.d_score = json.load(file)
             if self.d_score != {}:
                 self.d_score = dict(
-                    sorted(self.d_score["hi_score"].items(),
-                           key=lambda item: item[1]))
+                    sorted(
+                        self.d_score["hi_score"].items(),
+                        key=lambda item: item[1],
+                    )
+                )
         except Exception:
             self.d_score = {}
 
