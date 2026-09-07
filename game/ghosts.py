@@ -12,7 +12,16 @@ BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 
 
 class Ghost(Entity):
-    def __init__(self, pos, coord, sprite, ghost: int, algo: Algo, hitbox=(16, 16), speed=1.0):
+    def __init__(
+        self,
+        pos,
+        coord,
+        sprite,
+        ghost: int,
+        algo: Algo,
+        hitbox=(16, 16),
+        speed=1.0,
+    ):
         super().__init__(pos, (0, 0), coord, sprite, hitbox)
         self.ghost = ghost
         self.algo = algo
@@ -57,8 +66,11 @@ class Ghost(Entity):
 
     def draw(self, surface):
         import pygame
+
         colors = {BLINKY: "red", PINKY: "pink", INKY: "cyan", CLYDE: "orange"}
         if isinstance(self.surface, pygame.Rect):
-            pygame.draw.rect(surface, colors.get(self.ghost, "red"), self.surface)
+            pygame.draw.rect(
+                surface, colors.get(self.ghost, "red"), self.surface
+            )
         else:
             surface.blit(self.surface, self.coord)

@@ -28,6 +28,7 @@ class Pacman(Entity):
         self.live = live
         self.next = (0, 0)
         self.hit_ghost = False
+        self.cheat = False
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:
@@ -41,6 +42,11 @@ class Pacman(Entity):
 
     def event(self, event: pygame.event.Event, entity):
         if event.type == pygame.KEYDOWN:
+            match event.key:
+                case pygame.K_c:
+                    self.cheat = not self.cheat
+                case pygame.K_p:
+                    self.live += 1
             if self.player == 1:
                 match event.key:
                     case pygame.K_RIGHT:
@@ -122,7 +128,7 @@ class Pacman(Entity):
         if isinstance(ent, PacGum):
             self.score += ent.score
             ent.taken = True
-        if isinstance(ent, Ghost):
+        if isinstance(ent, Ghost) and not self.cheat:
             self.live -= 1
             self.hit_ghost = True
         if isinstance(ent, Pacman) or isinstance(ent, Wall):
