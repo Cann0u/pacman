@@ -8,6 +8,7 @@ import mazegen
 import random
 from .ghosts import Ghost
 from .algo import Algo
+from render.menu import Menu, Button
 
 
 class Game:
@@ -23,14 +24,25 @@ class Game:
         self.state = activate
         self.button = []
         self.focus = 0
+        self.pause = False
         self.font = font
         self.surface = surface
         self.entity = []
         self.info = info
-        self.generate_level()
-        self.time = 200
+        self.level = 0
+        self.generate_level(seed=self.info.seed)
+        self.time = self.info.level_max_time
         self.start_time = pygame.time.get_ticks()
-        self.end = False
+        self.end = None
+        self.menu = Menu(False, self.surface, self.font, None)
+        self.menu.button.append(Button("Resume", 50, 50, self.resume))
+        self.menu.button.append(Button("Exit", 60, 50, self.quit))
+
+    def quit(self):
+        self.end = "quit"
+
+    def resume(self):
+        self.pause = False
 
     def add_entity(self, entity: Entity | list):
         if isinstance(entity, list):
@@ -39,6 +51,12 @@ class Game:
             self.entity.append(entity)
 
     def event(self, event):
+        if self.pause:
+            self.menu.event(event)
+            return
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.pause = True
         for i, ent in enumerate(self.entity):
             if isinstance(ent, Pacman):
                 entity = self.entity.copy()
@@ -48,10 +66,10 @@ class Game:
                 ent.event(event)
 
     def loop(self):
-        if self.end:
+        if self.end or self.pause:
             return
         if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
-            self.end = True
+            self.end = "end"
             return
         pacgum = 0
         for i, ent in enumerate(self.entity):
@@ -84,21 +102,30 @@ class Game:
                 s_x, s_y = self.map.start
                 ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
 
-                aligned = (e_x - s_x - 2) % 20 == 0 and (e_y - s_y - 2) % 20 == 0
+                aligned = (e_x - s_x - 2) % 20 == 0 and (
+                    e_y - s_y - 2
+                ) % 20 == 0
                 if aligned:
                     pacmans = [e for e in entity if isinstance(e, Pacman)]
                     if pacmans:
                         g_x, g_y = ent.pos
                         pacman_ent = min(
                             pacmans,
-                            key=lambda p: (p.pos[0] - g_x) ** 2 + (p.pos[1] - g_y) ** 2,
+                            key=lambda p: (p.pos[0] - g_x) ** 2
+                            + (p.pos[1] - g_y) ** 2,
                         )
                         p_dx, p_dy = pacman_ent.moove
-                        pacman_dir = (p_dx // 2 if p_dx else 0, p_dy // 2 if p_dy else 0)
-                        ghosts = [e for e in self.entity if isinstance(e, Ghost)]
+                        pacman_dir = (
+                            p_dx // 2 if p_dx else 0,
+                            p_dy // 2 if p_dy else 0,
+                        )
+                        ghosts = [
+                            e for e in self.entity if isinstance(e, Ghost)
+                        ]
                         ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
 
                 from .map import Wall
+
                 if isinstance(ent.check_collapse(entity), Wall):
                     continue
 
@@ -106,7 +133,7 @@ class Game:
                 should_move = ent.move_accumulator >= 1
                 if should_move:
                     ent.move_accumulator -= 1
-            
+
             if should_move:
                 ent.moove_on()
 
@@ -117,12 +144,18 @@ class Game:
                 if isinstance(ent, Pacman):
                     pacman.append(ent)
             self.entity += pacman
+            self.level += 1
+            if self.level == len(self.info.level):
+                self.end = "win"
+                return
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
     def closest_valid(self, valid, target):
         t_x, t_y = target
-        best = min(valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2)
+        best = min(
+            valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2
+        )
         valid.remove(best)
         return best
 
@@ -136,14 +169,20 @@ class Game:
             (width - 1, height - 1),
         ]
 
-    def generate_level(self, pacman: list[Pacman] = None, ghosts: list[Ghost] = None):
+    def generate_level(
+        self,
+        pacman: list[Pacman] = None,
+        ghosts: list[Ghost] = None,
+        seed: int = None,
+    ):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
-                height=self.info["level"]["height"],
-                width=self.info["level"]["width"],
+                height=self.info.level[self.level].height,
+                width=self.info.level[self.level].width,
                 entry_coord=(0, 0),
                 exit_coord=(1, 0),
                 output_file="output.txt",
+                seed=seed,
             )
         )
         self.maze.generate()
@@ -155,14 +194,21 @@ class Game:
             for i in range(1, self.player + 1):
                 self.add_entity(
                     Pacman(
-                        (21, 19 + i * 2),
+                        (
+                            (
+                                self.info.level[self.level].width
+                                if self.info.level[self.level].width % 2 == 1
+                                else self.info.level[self.level].width + 1
+                            ),
+                            self.info.level[self.level].height + i * 2,
+                        ),
                         (0, 0),
                         self.map.start,
                         None,
                         i,
                         self.font,
                         (16, 16),
-                        self.info["lives"],
+                        self.info.lives,
                         0,
                     )
                 )
@@ -206,9 +252,9 @@ class Game:
                 ghost.algo = Algo(self.map)
                 self.add_entity(ghost)
 
-        if self.info["pacgum"] > len(valid):
+        if self.info.pacgum > len(valid):
             raise ValueError("To many PacGum")
-        for i in range(self.info["pacgum"]):
+        for i in range(self.info.pacgum):
             idc = random.randint(0, len(valid) - 1)
             self.add_entity(
                 PacGum(
@@ -216,7 +262,7 @@ class Game:
                     (0, 0),
                     self.map.start,
                     None,
-                    self.info["points_per_pacgum"],
+                    self.info.points_per_pacgum,
                     (8, 8),
                 )
             )
@@ -253,38 +299,61 @@ class Game:
                 ent.direction = None
 
     def draw(self):
+        if self.pause:
+            self.menu.draw()
+            return
+        w_x, w_y = pygame.display.get_window_size()
         time = self.time - (pygame.time.get_ticks() - self.start_time) // 1000
+        f_x, f_y = self.font.size(str(time))
         self.surface.blit(
-            self.font.render(str(time), False, "white"), (0, 800)
+            self.font.render(str(time), False, "white"),
+            (w_x - f_x, w_y - f_y * 4),
+        )
+        self.surface.blit(
+            self.font.render("level: " + str(self.level + 1), False, "white"),
+            (0, w_x // 2),
         )
         for ent in self.entity:
             ent.draw(self.surface)
 
 
 class End:
-    def __init__(self, state: Game):
+    def __init__(self, state: Game, win: bool):
         self.score = sum(
             [i.score for i in state.entity if isinstance(i, Pacman)]
         )
+        self.win = win
         self.surface = state.surface
         self.font = state.font
         self.end = False
         self.name = ""
         self.letter = 0
         self.player = state.player
-        self.hi_score = state.info["highscore_filename"]
-        with open(self.hi_score) as file:
-            self.d_score = json.load(file)
-        self.d_score = dict(
-            sorted(self.d_score["hi_score"].items(), key=lambda item: item[1])
-        )
+        self.hi_score = state.info.highscore_filename
+        try:
+            with open(self.hi_score) as file:
+                self.d_score = json.load(file)
+            if self.d_score != {}:
+                self.d_score = dict(
+                    sorted(
+                        self.d_score["hi_score"].items(),
+                        key=lambda item: item[1],
+                    )
+                )
+        except Exception:
+            self.d_score = {}
 
     def loop(self): ...
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                if (
+                if self.d_score == {}:
+                    if self.player == 1:
+                        self.d_score[self.name] = self.score
+                    else:
+                        self.d_score["duo " + self.name] = self.score
+                elif (
                     min(self.d_score.values()) < self.score
                     or len(self.d_score.values()) < 10
                 ):
@@ -313,11 +382,18 @@ class End:
 
     def draw(self):
         w_x, w_y = pygame.display.get_window_size()
-        f_x, f_y = self.font.size("GAME OVER")
-        self.surface.blit(
-            self.font.render("GAME OVER", False, "red"),
-            (w_x / 2 - f_x, w_y / 2 - f_y),
-        )
+        if self.win:
+            f_x, f_y = self.font.size("Victory")
+            self.surface.blit(
+                self.font.render("Victory", False, "green"),
+                (w_x / 2 - f_x, w_y / 2 - f_y),
+            )
+        else:
+            f_x, f_y = self.font.size("GAME OVER")
+            self.surface.blit(
+                self.font.render("GAME OVER", False, "red"),
+                (w_x / 2 - f_x, w_y / 2 - f_y),
+            )
         f_x, f_y = self.font.size("Name : ")
         self.surface.blit(
             self.font.render("Name :", False, "white"),
