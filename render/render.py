@@ -53,28 +53,22 @@ class Render:
             self.font,
             self.parser.info.highscore_filename,
         )
-        self.state.text.append(
-            Text(
-                "HIGHSCORE :",
-                13,
-                50
-            )
-        )
+        self.state.add_text(Text("HIGHSCORE :", 13, 50))
         try:
             with open(self.parser.info.highscore_filename) as file:
                 dict = json.load(file)
                 for i, user in enumerate(dict["hi_score"]):
-                    self.state.text.append(
+                    self.state.add_text(
                         Text(
                             f"{user} : {dict['hi_score'][user]}",
                             20 + 7 * i,
-                            50
+                            50,
                         )
                     )
         except Exception as e:
             print(e)
 
-        self.state.button.append(Button("BACK", 90, 50, self.start))
+        self.state.add_button(Button("BACK", 90, 50, self.start))
 
     def info(self):
         self.state = Menu(True, self.surface, self.font, None)
@@ -92,8 +86,8 @@ class Render:
             "Have fun.",
         ]
         for i, text in enumerate(texts):
-            self.state.text.append(Text(text, 20 + 5 * i, 50))
-        self.state.button.append(Button("BACK", 90, 50, self.start))
+            self.state.add_text(Text(text, 20 + 5 * i, 50))
+        self.state.add_button(Button("BACK", 90, 50, self.start))
 
     def start(self):
         self.state = Menu(
@@ -102,12 +96,12 @@ class Render:
             self.font,
             self.parser.info.highscore_filename,
         )
-        self.state.button.append(Button("1 PLAYER", 45, 50, self.launch1))
-        self.state.button.append(Button("2 PLAYERS", 55, 50, self.launch2))
-        self.state.button.append(Button("INFO", 65, 50, self.info))
-        self.state.button.append(Button("HIGHSCORE", 75, 50, self.highscore))
-        self.state.button.append(Button("EXIT", 85, 50, self.quit))
-        self.state.images.append(
+        self.state.add_button(Button("1 PLAYER", 45, 50, self.launch1))
+        self.state.add_button(Button("2 PLAYERS", 55, 50, self.launch2))
+        self.state.add_button(Button("INFO", 65, 50, self.info))
+        self.state.add_button(Button("HIGHSCORE", 75, 50, self.highscore))
+        self.state.add_button(Button("EXIT", 85, 50, self.quit))
+        self.state.add_image(
             Image(pygame.image.load("sprite/canvas.png"), (0, 0), 1.5)
         )
 

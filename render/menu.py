@@ -97,6 +97,15 @@ class Menu:
     def loop(self):
         pass
 
+    def add_button(self, button: Button):
+        self.buttton.append(button)
+
+    def add_image(self, image: Image):
+        self.images.append(image)
+
+    def add_text(self, text: Button):
+        self.text.append(text)
+
     def event(self, event):
         self.button[self.focus].focus = True
         if event.type == pygame.KEYDOWN:

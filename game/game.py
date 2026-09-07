@@ -36,8 +36,8 @@ class Game:
         self.start_time = pygame.time.get_ticks()
         self.end = None
         self.menu = Menu(False, self.surface, self.font, None)
-        self.menu.button.append(Button("Resume", 50, 50, self.resume))
-        self.menu.button.append(Button("Exit", 60, 50, self.quit))
+        self.menu.add_button(Button("Resume", 50, 50, self.resume))
+        self.menu.add_button(Button("Exit", 60, 50, self.quit))
 
     def quit(self):
         self.end = "quit"
