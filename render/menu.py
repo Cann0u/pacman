@@ -98,7 +98,7 @@ class Menu:
         pass
 
     def add_button(self, button: Button):
-        self.buttton.append(button)
+        self.button.append(button)
 
     def add_image(self, image: Image):
         self.images.append(image)
