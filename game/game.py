@@ -213,7 +213,16 @@ class Game:
                                 if self.info.level[self.level].width % 2 == 1
                                 else self.info.level[self.level].width + 1
                             ),
-                            self.info.level[self.level].height + i * 2,
+                            (
+                                (self.info.level[self.level].height + i * 2)
+                                if (self.info.level[self.level].height + i * 2)
+                                % 2
+                                == 1
+                                else (
+                                    self.info.level[self.level].height + i * 2
+                                )
+                                - 1
+                            ),
                         ),
                         (0, 0),
                         self.map.start,

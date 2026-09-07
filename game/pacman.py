@@ -47,7 +47,7 @@ class Pacman(Entity):
                     self.cheat = not self.cheat
                 case pygame.K_p:
                     self.live += 1
-            if self.player == 1:
+            if self.player == 2:
                 match event.key:
                     case pygame.K_RIGHT:
                         m_x, m_y = self.moove
