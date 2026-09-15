@@ -278,11 +278,14 @@ class Game:
             raise ValueError("To many PacGum")
         for i in range(self.info.pacgum):
             idc = random.randint(0, len(valid) - 1)
+            m_x, m_y = self.map.start
+            v_x, v_y = valid[idc]
             self.add_entity(
                 PacGum(
                     valid[idc],
                     (0, 0),
-                    self.map.start,
+                    (v_x * 20 + m_x + 6,
+                     v_y * 20 + m_y + 6),
                     None,
                     self.info.points_per_pacgum,
                     (8, 8),
