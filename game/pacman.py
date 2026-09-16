@@ -134,11 +134,10 @@ class Pacman(Entity):
             ent.taken = True
             self.frightened_mode = True
         if isinstance(ent, Ghost):
-            if self.frightened_mode:
+            if ent.frightened and not ent.ate:
                 self.score += 200
                 ent.ate = True
-                ent.frightened = False
-            elif not self.cheat:
+            elif not self.cheat and not ent.ate:
                 self.live -= 1
                 self.hit_ghost = True
         if isinstance(ent, Pacman) or isinstance(ent, Wall):

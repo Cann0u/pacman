@@ -114,6 +114,7 @@ class Game:
                     for e in self.entity:
                         if isinstance(e, Ghost):
                             e.frightened = True
+                    ent.frightened_mode = False
 
             elif isinstance(ent, Ghost):
                 e_x, e_y = ent.coord
@@ -123,6 +124,11 @@ class Game:
                 aligned = (e_x - s_x - 2) % 20 == 0 and (
                     e_y - s_y - 2
                 ) % 20 == 0
+
+                if ent.ate and ent.pos == ent.spawn:
+                    ent.ate = False
+                    ent.frightened = False
+
                 if aligned:
                     pacmans = [e for e in entity if isinstance(e, Pacman)]
                     if pacmans:
