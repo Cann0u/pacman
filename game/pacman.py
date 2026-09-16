@@ -28,6 +28,7 @@ class Pacman(Entity):
         self.live = live
         self.next = (0, 0)
         self.hit_ghost = False
+        self.frightened_mode = False
         self.cheat = False
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
@@ -122,15 +123,24 @@ class Pacman(Entity):
 
     def check_entity(self, entity: List[Entity]):
         ent = self.check_collapse(entity)
-        from .pacgum import PacGum
+        from .pacgum import PacGum, SuperPacGum
         from .ghosts import Ghost
 
         if isinstance(ent, PacGum):
             self.score += ent.score
             ent.taken = True
-        if isinstance(ent, Ghost) and not self.cheat:
-            self.live -= 1
-            self.hit_ghost = True
+        if isinstance(ent, SuperPacGum):
+            self.score += ent.score
+            ent.taken = True
+            self.frightened_mode = True
+        if isinstance(ent, Ghost):
+            if self.frightened_mode:
+                self.score += 200
+                ent.ate = True
+                ent.frightened = False
+            elif not self.cheat:
+                self.live -= 1
+                self.hit_ghost = True
         if isinstance(ent, Pacman) or isinstance(ent, Wall):
             self.moove = 0, 0
 

@@ -1,6 +1,6 @@
 import pygame
 from .entity import Entity
-from .pacgum import PacGum
+from .pacgum import PacGum, SuperPacGum
 from .map import Map
 from .pacman import Pacman
 import json
@@ -88,7 +88,7 @@ class Game:
             return
         pacgum = 0
         for i, ent in enumerate(self.entity):
-            if isinstance(ent, PacGum):
+            if isinstance(ent, (PacGum, SuperPacGum)):
                 pacgum += 1
                 if ent.taken:
                     self.entity.pop(i)
@@ -109,6 +109,11 @@ class Game:
                     ent.hit_ghost = False
                     if ent.live > 0:
                         self.reset_positions()
+
+                if ent.frightened_mode:
+                    for e in self.entity:
+                        if isinstance(e, Ghost):
+                            e.frightened = True
 
             elif isinstance(ent, Ghost):
                 e_x, e_y = ent.coord
@@ -259,6 +264,16 @@ class Game:
                         i,
                         Algo(self.map),
                         speed=0.75,
+                    )
+                )
+                self.add_entity(
+                    SuperPacGum(
+                        ghost_spawn,
+                        (0, 0),
+                        (g_x * 20 + c_x + 4, g_y * 20 + c_y + 4),
+                        None,
+                        self.info.points_per_super_pacgum,
+                        (12, 12),
                     )
                 )
         else:

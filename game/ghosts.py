@@ -29,6 +29,8 @@ class Ghost(Entity):
         self.spawn = pos
         self.speed = speed
         self.move_accumulator = 0.0
+        self.frightened = False
+        self.ate = False
 
     def compute_target(self, pacman_pos, pacman_dir, ghosts):
         p_x, p_y = pacman_pos
@@ -58,7 +60,10 @@ class Ghost(Entity):
         return pacman_pos
 
     def update_target(self, pacman_pos, pacman_dir=(0, 0), ghosts=None):
-        target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
+        if self.ate:
+            target = self.spawn
+        else:
+            target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
         direction = self.algo.next_move(self.pos, target, self.direction)
         if direction:
             self.direction = direction
@@ -68,9 +73,15 @@ class Ghost(Entity):
         import pygame
 
         colors = {BLINKY: "red", PINKY: "pink", INKY: "cyan", CLYDE: "orange"}
+        if self.ate:
+            color = "white"
+        elif self.frightened:
+            color = "blue"
+        else:
+            color = colors.get(self.ghost, "red")
         if isinstance(self.surface, pygame.Rect):
             pygame.draw.rect(
-                surface, colors.get(self.ghost, "red"), self.surface
+                surface, color, self.surface
             )
         else:
             surface.blit(self.surface, self.coord)
