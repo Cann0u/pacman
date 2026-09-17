@@ -114,7 +114,17 @@ class Game:
                     for e in self.entity:
                         if isinstance(e, Ghost):
                             e.frightened = True
+                            e.speed = e.base_speed / 2
                     ent.frightened_mode = False
+                elif (
+                    not ent.frightened_mode
+                    and ent.frightened_start is not None
+                ):
+                    if pygame.time.get_ticks() - ent.frightened_start > 6000:
+                        for e in self.entity:
+                            if isinstance(e, Ghost):
+                                e.frightened = False
+                                e.speed = e.base_speed
 
             elif isinstance(ent, Ghost):
                 e_x, e_y = ent.coord
@@ -128,6 +138,8 @@ class Game:
                 if ent.ate and ent.pos == ent.spawn:
                     ent.ate = False
                     ent.frightened = False
+                    ent.speed = ent.base_speed
+                    print("Back origin", ent.speed, ent.ghost)
 
                 if aligned:
                     pacmans = [e for e in entity if isinstance(e, Pacman)]
@@ -305,8 +317,7 @@ class Game:
                 PacGum(
                     valid[idc],
                     (0, 0),
-                    (v_x * 20 + m_x + 6,
-                     v_y * 20 + m_y + 6),
+                    (v_x * 20 + m_x + 6, v_y * 20 + m_y + 6),
                     None,
                     self.info.points_per_pacgum,
                     (8, 8),

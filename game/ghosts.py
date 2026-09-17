@@ -28,6 +28,7 @@ class Ghost(Entity):
         self.direction = None
         self.spawn = pos
         self.speed = speed
+        self.base_speed = speed
         self.move_accumulator = 0.0
         self.frightened = False
         self.ate = False
@@ -40,6 +41,9 @@ class Ghost(Entity):
             return pacman_pos
 
         if self.ghost == PINKY:
+            g_x, g_y = self.pos
+            if (g_x - p_x) ** 2 + (g_y - p_y) ** 2 < 16:
+                return pacman_pos
             return p_x + d_x * 4, p_y + d_y * 4
 
         if self.ghost == INKY:
