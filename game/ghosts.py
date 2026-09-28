@@ -66,6 +66,8 @@ class Ghost(Entity):
     def update_target(self, pacman_pos, pacman_dir=(0, 0), ghosts=None):
         if self.ate:
             target = self.spawn
+        elif self.frightened:
+            target = self.algo.flee_target(self.pos, pacman_pos)
         else:
             target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
         direction = self.algo.next_move(self.pos, target, self.direction)

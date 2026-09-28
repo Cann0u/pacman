@@ -112,7 +112,7 @@ class Game:
 
                 if ent.frightened_mode:
                     for e in self.entity:
-                        if isinstance(e, Ghost):
+                        if isinstance(e, Ghost) and not e.ate:
                             e.frightened = True
                             e.speed = e.base_speed / 2
                     ent.frightened_mode = False
@@ -125,6 +125,7 @@ class Game:
                             if isinstance(e, Ghost):
                                 e.frightened = False
                                 e.speed = e.base_speed
+                                ent.frightened_start = None
 
             elif isinstance(ent, Ghost):
                 e_x, e_y = ent.coord
@@ -136,10 +137,9 @@ class Game:
                 ) % 20 == 0
 
                 if ent.ate and ent.pos == ent.spawn:
-                    ent.ate = False
                     ent.frightened = False
+                    ent.ate = False
                     ent.speed = ent.base_speed
-                    print("Back origin", ent.speed, ent.ghost)
 
                 if aligned:
                     pacmans = [e for e in entity if isinstance(e, Pacman)]
@@ -168,7 +168,7 @@ class Game:
                 ent.move_accumulator += ent.speed
                 should_move = ent.move_accumulator >= 1
                 if should_move:
-                    ent.move_accumulator -= 1
+                    ent.move_accumulator = min(ent.move_accumulator - 1, 1.0)
 
             if should_move:
                 ent.moove_on()

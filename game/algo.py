@@ -11,6 +11,17 @@ class Algo:
             return False
         return maze[y][x] != "#"
 
+    def distance_map(self, start):
+        dist = {start: 0}
+        queue = deque([start])
+        while queue:
+            x, y = queue.popleft()
+            for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if n not in dist and self.is_walkable(*n):
+                    dist[n] = dist[(x, y)] + 1
+                    queue.append(n)
+        return dist
+
     def next_move(self, ghost_pos, target_pos, last_direction=None):
         path = self._shortest_path(ghost_pos, target_pos)
         if not path or len(path) < 2:
@@ -29,6 +40,30 @@ class Algo:
         if dy == -1:
             return "up"
         return None
+
+    def flee_target(self, ghost_pos, pacman_pos):
+        from_pac = self.distance_map(pacman_pos)
+        from_ghost = self.distance_map(ghost_pos)
+
+        best, best_key = None, None
+        for cell, gd in from_ghost.items():
+            pd = from_pac.get(cell)
+            if pd is None or gd >= pd:
+                continue
+            key = (pd, -gd)
+            if best_key is None or key > best_key:
+                best, best_key = cell, key
+        if best is not None:
+            return best
+        x, y = ghost_pos
+        neighbors = [
+            n
+            for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+            if self.is_walkable(*n)
+        ]
+        return max(
+            neighbors, key=lambda n: from_pac.get(n, 0), default=ghost_pos
+        )
 
     def _shortest_path(self, start, goal):
         if start == goal:

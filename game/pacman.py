@@ -30,6 +30,7 @@ class Pacman(Entity):
         self.hit_ghost = False
         self.frightened_mode = False
         self.frightened_start = None
+        self.ghost_multiplier = 1
         self.cheat = False
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
@@ -134,13 +135,14 @@ class Pacman(Entity):
             self.score += ent.score
             ent.taken = True
             self.frightened_mode = True
+            self.ghost_multiplier = 1
             self.frightened_start = pygame.time.get_ticks()
         if isinstance(ent, Ghost):
             if ent.frightened and not ent.ate:
-                self.score += 200
+                self.score += 200 * self.ghost_multiplier
+                self.ghost_multiplier += 1
                 ent.ate = True
                 ent.speed = ent.base_speed * 2
-                print("Dead", ent.speed, ent.ghost)
             elif not self.cheat and not ent.ate:
                 self.live -= 1
                 self.hit_ghost = True
