@@ -74,11 +74,11 @@ class Render:
         self.state = Menu(True, self.surface, self.font, None)
         texts = [
             "Welcome to pacman.",
-            "use wasd to move:",
-            "'w' go up",
-            "'a' go left",
-            "'s' go right",
-            "'d' go down",
+            "use wasd to move or arrows (player 2):",
+            "'w' | 'up' go up",
+            "'a' | 'left' go left",
+            "'s' | 'right' go right",
+            "'d' | 'down' go down",
             "like the real pacman you die if you hit a ghost",
             "or if the time expire.",
             "Your goal was to eat every pacgum in the level,",
