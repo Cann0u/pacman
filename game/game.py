@@ -87,6 +87,7 @@ class Game:
             self.end = "end"
             return
         pacgum = 0
+        from .map import Wall
         for i, ent in enumerate(self.entity):
             if isinstance(ent, (PacGum, SuperPacGum)):
                 pacgum += 1
@@ -125,6 +126,7 @@ class Game:
                             if isinstance(e, Ghost):
                                 e.frightened = False
                                 e.speed = e.base_speed
+
                                 ent.frightened_start = None
 
             elif isinstance(ent, Ghost):
@@ -160,15 +162,28 @@ class Game:
                         ]
                         ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
 
-                from .map import Wall
-
-                if isinstance(ent.check_collapse(entity), Wall):
+                collapse = ent.check_collapse(entity)
+                if isinstance(collapse, Wall):
                     continue
 
                 ent.move_accumulator += ent.speed
                 should_move = ent.move_accumulator >= 1
-                if should_move:
-                    ent.move_accumulator = min(ent.move_accumulator - 1, 1.0)
+                while ent.move_accumulator >= 1:
+                    e_x, e_y = ent.coord
+                    s_x, s_y = self.map.start
+                    ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
+
+                    aligned = (e_x - s_x - 2) % 20 == 0 and (
+                        e_y - s_y - 2
+                    ) % 20 == 0
+                    if ent.ate and aligned:
+                        ent.update_target()
+                    ent.move_accumulator -= 1
+                    collapse = ent.check_collapse(entity)
+                    if isinstance(collapse, Wall):
+                        continue
+                    ent.moove_on()
+                should_move = False
 
             if should_move:
                 ent.moove_on()

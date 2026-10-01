@@ -22,12 +22,11 @@ class Ghost(Entity):
         hitbox=(16, 16),
         speed=1.0,
     ):
-        super().__init__(pos, (0, 0), coord, sprite, hitbox)
+        super().__init__(pos, (0, 0), coord, sprite, hitbox, speed)
         self.ghost = ghost
         self.algo = algo
         self.direction = None
         self.spawn = pos
-        self.speed = speed
         self.base_speed = speed
         self.move_accumulator = 0.0
         self.frightened = False
@@ -63,7 +62,7 @@ class Ghost(Entity):
 
         return pacman_pos
 
-    def update_target(self, pacman_pos, pacman_dir=(0, 0), ghosts=None):
+    def update_target(self, pacman_pos=(0, 0), pacman_dir=(0, 0), ghosts=None):
         if self.ate:
             target = self.spawn
         elif self.frightened:

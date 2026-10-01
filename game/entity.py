@@ -10,11 +10,14 @@ class Entity:
         coord: Tuple,
         sprite: pygame.Surface = None,
         hitbox: Tuple = (0, 0),
+        speed=0
     ):
         self.pos = pos
         self.coord = coord
         self.moove = moove
         self.hitbox = hitbox
+        self.speed = speed
+        self.accu_move = 0
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:

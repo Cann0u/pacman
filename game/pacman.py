@@ -17,7 +17,7 @@ class Pacman(Entity):
         live,
         score
     ):
-        super().__init__(pos, moove, coord, sprite, hitbox)
+        super().__init__(pos, moove, coord, sprite, hitbox, speed=1)
         self.player = player
         self.score = score
         self.font = font
@@ -142,7 +142,8 @@ class Pacman(Entity):
                 self.score += 200 * self.ghost_multiplier
                 self.ghost_multiplier += 1
                 ent.ate = True
-                ent.speed = ent.base_speed * 2
+
+                ent.speed = ent.base_speed * 3
             elif not self.cheat and not ent.ate:
                 self.live -= 1
                 self.hit_ghost = True
