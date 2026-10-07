@@ -1,6 +1,7 @@
 import pygame
 from .entity import Entity
 from .map import Wall
+from render import sprites
 from typing import List
 
 
@@ -32,6 +33,7 @@ class Pacman(Entity):
         self.frightened_start = None
         self.ghost_multiplier = 1
         self.cheat = False
+        self.facing = "right"
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:
@@ -153,7 +155,12 @@ class Pacman(Entity):
     def draw(self, surface: pygame.Surface):
         if self.live <= 0:
             return
-        if isinstance(self.surface, pygame.Rect):
+        if sprites.available():
+            self.facing = sprites.direction_from_move(self.moove, self.facing)
+            moving = self.moove != (0, 0)
+            frame = sprites.pacman_frame(self.facing, moving, self.player)
+            surface.blit(frame, self.coord)
+        elif isinstance(self.surface, pygame.Rect):
             if self.player == 1:
                 pygame.draw.rect(surface, "yellow", self.surface)
             else:

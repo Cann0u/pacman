@@ -115,16 +115,23 @@ class Game:
                     for e in self.entity:
                         if isinstance(e, Ghost) and not e.ate:
                             e.frightened = True
+                            e.flash = False
                             e.speed = e.base_speed / 2
                     ent.frightened_mode = False
                 elif (
                     not ent.frightened_mode
                     and ent.frightened_start is not None
                 ):
-                    if pygame.time.get_ticks() - ent.frightened_start > 6000:
+                    elapsed = pygame.time.get_ticks() - ent.frightened_start
+                    if elapsed > 4000:
+                        for e in self.entity:
+                            if isinstance(e, Ghost):
+                                e.flash = True
+                    if elapsed > 6000:
                         for e in self.entity:
                             if isinstance(e, Ghost):
                                 e.frightened = False
+                                e.flash = False
                                 e.speed = e.base_speed
 
                                 ent.frightened_start = None

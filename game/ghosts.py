@@ -1,5 +1,6 @@
 from .entity import Entity
 from .algo import Algo
+from render import sprites
 
 DIRECTION_TO_MOOVE = {
     "up": (0, -2),
@@ -31,6 +32,7 @@ class Ghost(Entity):
         self.move_accumulator = 0.0
         self.frightened = False
         self.ate = False
+        self.flash = False  # True quand la peur est presque finie
 
     def compute_target(self, pacman_pos, pacman_dir, ghosts):
         p_x, p_y = pacman_pos
@@ -77,6 +79,17 @@ class Ghost(Entity):
     def draw(self, surface):
         import pygame
 
+        if sprites.available():
+            frame = sprites.ghost_frame(
+                self.ghost,
+                self.direction or "left",
+                self.frightened,
+                self.flash,
+                self.ate,
+            )
+            surface.blit(frame, self.coord)
+            return
+
         colors = {BLINKY: "red", PINKY: "pink", INKY: "cyan", CLYDE: "orange"}
         if self.ate:
             color = "white"
@@ -85,8 +98,6 @@ class Ghost(Entity):
         else:
             color = colors.get(self.ghost, "red")
         if isinstance(self.surface, pygame.Rect):
-            pygame.draw.rect(
-                surface, color, self.surface
-            )
+            pygame.draw.rect(surface, color, self.surface)
         else:
             surface.blit(self.surface, self.coord)
