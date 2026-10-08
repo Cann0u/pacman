@@ -32,7 +32,7 @@ class Ghost(Entity):
         self.move_accumulator = 0.0
         self.frightened = False
         self.ate = False
-        self.flash = False  # True quand la peur est presque finie
+        self.flash = False
 
     def compute_target(self, pacman_pos, pacman_dir, ghosts):
         p_x, p_y = pacman_pos

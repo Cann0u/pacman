@@ -1,6 +1,7 @@
 from typing import List
 from .entity import Entity
 import pygame
+from render import sprites
 
 
 class Wall(Entity):
@@ -29,12 +30,27 @@ class Map:
         for i, line in enumerate(self.maze):
             for j, col in enumerate(line):
                 if col == "#":
+                    sprite = None
+                    if sprites.tiles_available():
+                        sprite = sprites.wall_sprite(
+                            self._is_wall(i - 1, j),
+                            self._is_wall(i + 1, j),
+                            self._is_wall(i, j - 1),
+                            self._is_wall(i, j + 1),
+                        )
                     self.entity.append(
                         Wall(
                             (i, j),
                             (0, 0),
                             (j * 20 + s_x, i * 20 + s_y),
-                            None,
+                            sprite,
                             (20, 20),
                         )
                     )
+
+    def _is_wall(self, i: int, j: int) -> bool:
+        return (
+            0 <= i < len(self.maze)
+            and 0 <= j < len(self.maze[i])
+            and self.maze[i][j] == "#"
+        )
