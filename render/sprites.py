@@ -41,6 +41,13 @@ def available() -> bool:
     return _load_sheet() is not None
 
 
+def _recolor(sprite: pygame.Surface, old, new) -> None:
+    for x in range(sprite.get_width()):
+        for y in range(sprite.get_height()):
+            if sprite.get_at((x, y))[:3] == old:
+                sprite.set_at((x, y), new)
+
+
 def get(col: int, row: int, size: int = CELL, recolor=None) -> pygame.Surface:
     key = (col, row, size, recolor)
     if key not in _cache:
@@ -52,11 +59,7 @@ def get(col: int, row: int, size: int = CELL, recolor=None) -> pygame.Surface:
         sprite.fill((0, 0, 0))
         sprite.blit(sheet.subsurface(rect), (1, 1))
         if recolor:
-            old, new = recolor
-            for x in range(CELL):
-                for y in range(CELL):
-                    if sprite.get_at((x, y))[:3] == old:
-                        sprite.set_at((x, y), new)
+            _recolor(sprite, *recolor)
         if size != CELL:
             sprite = pygame.transform.scale(sprite, (size, size))
         sprite.set_colorkey((0, 0, 0))
@@ -87,8 +90,9 @@ def pacman_frame(direction: str, moving: bool, player: int = 1):
     return get(col, PACMAN_ROW[direction], recolor=recolor)
 
 
-def ghost_frame(ghost: int, direction: str, frightened: bool, flash: bool,
-                ate: bool):
+def ghost_frame(
+    ghost: int, direction: str, frightened: bool, flash: bool, ate: bool
+):
     t = pygame.time.get_ticks()
     anim = (t // GHOST_FRAME_MS) % 2
     if ate:
@@ -98,6 +102,7 @@ def ghost_frame(ghost: int, direction: str, frightened: bool, flash: bool,
         base = FRIGHT_WHITE_COL if white else FRIGHT_BLUE_COL
         return get(base + anim, GHOST_FIRST_ROW)
     return get(GHOST_DIR_COL[direction] + anim, GHOST_FIRST_ROW + ghost - 1)
+
 
 TILESET_PATH = "sprite/tileset.png"
 TILE_ORIGIN = (225, 0)
@@ -157,69 +162,113 @@ def super_pacgum_sprite():
         return None
     return tile(*SUPER_PELLET_TILE, size=12)
 
-def _pad_tile(col: int, row: int) -> pygame.Surface:
-    t = tile(col, row, size=16)
-    canvas = pygame.Surface((CELL_PX, CELL_PX))
-    canvas.fill((0, 0, 0))
-    canvas.blit(t, (3, 3))
-    scale = pygame.transform.scale
-    canvas.blit(scale(t.subsurface((0, 0, 16, 1)), (16, 3)), (3, 0))
-    canvas.blit(scale(t.subsurface((0, 15, 16, 1)), (16, 1)), (3, 19))
-    canvas.blit(scale(t.subsurface((0, 0, 1, 16)), (3, 16)), (0, 3))
-    canvas.blit(scale(t.subsurface((15, 0, 1, 16)), (1, 16)), (19, 3))
-    for (cx, cy, w, h), px in (
-        ((0, 0, 3, 3), (0, 0)),
-        ((19, 0, 1, 3), (15, 0)),
-        ((0, 19, 3, 1), (0, 15)),
-        ((19, 19, 1, 1), (15, 15)),
-    ):
-        canvas.fill(t.get_at(px), (cx, cy, w, h))
-    canvas.set_colorkey((0, 0, 0))
-    return canvas
+
+LOGICAL = 10
+LINE_A = 2
+LINE_B = 7
+PX = CELL_PX // LOGICAL
 
 
-def _wall_pieces():
-    if "pieces" not in _tile_cache:
-        h = _pad_tile(4, 4)
-        v = _pad_tile(8, 4)
-        rd = _pad_tile(2, 5)
-        flip = pygame.transform.flip
-        _tile_cache["pieces"] = {
-            "h": h,
-            "v": v,
-            ("right", "down"): rd,
-            ("right", "up"): flip(rd, False, True),
-            ("left", "down"): flip(rd, True, False),
-            ("left", "up"): flip(rd, True, True),
-        }
-    return _tile_cache["pieces"]
+def _wall_pixels(up, down, left, right, ul, ur, dl, dr):
+    px = set()
+    A, B, END = LINE_A, LINE_B, LOGICAL - 1
+
+    x0 = 0 if left else 4
+    x1 = END if right else 5
+    y0 = 0 if up else 4
+    y1 = END if down else 5
+    if not up:
+        px.update((x, A) for x in range(x0, x1 + 1))
+    if not down:
+        px.update((x, B) for x in range(x0, x1 + 1))
+    if not left:
+        px.update((A, y) for y in range(y0, y1 + 1))
+    if not right:
+        px.update((B, y) for y in range(y0, y1 + 1))
+
+    if not up and not left:
+        px.add((3, 3))
+    if not up and not right:
+        px.add((6, 3))
+    if not down and not left:
+        px.add((3, 6))
+    if not down and not right:
+        px.add((6, 6))
+
+    if up and left and not ul:
+        px.update({(2, 0), (2, 1), (1, 2), (0, 2)})
+    if up and right and not ur:
+        px.update({(7, 0), (7, 1), (8, 2), (9, 2)})
+    if down and left and not dl:
+        px.update({(2, 9), (2, 8), (1, 7), (0, 7)})
+    if down and right and not dr:
+        px.update({(7, 9), (7, 8), (8, 7), (9, 7)})
+    return px
 
 
-def wall_sprite(up: bool, down: bool, left: bool, right: bool):
-    key = ("wall", up, down, left, right)
-    if key in _tile_cache:
-        return _tile_cache[key]
-    p = _wall_pieces()
-    s = pygame.Surface((CELL_PX, CELL_PX))
-    s.fill((0, 0, 0))
-    n = up + down + left + right
-    if n == 2 and (up or down) and (left or right):
-        s.blit(p[("right" if right else "left", "down" if down else "up")], (0, 0))
-    else:
-        if up and down:
-            s.blit(p["v"], (0, 0))
-        elif up:
-            s.blit(p["v"], (0, 0), (0, 0, CELL_PX, CELL_PX // 2 + 1))
-        elif down:
-            s.blit(p["v"], (0, CELL_PX // 2 - 1), (0, CELL_PX // 2 - 1, CELL_PX, CELL_PX // 2 + 1))
-        if left and right:
-            s.blit(p["h"], (0, 0))
-        elif left:
-            s.blit(p["h"], (0, 0), (0, 0, CELL_PX // 2 + 1, CELL_PX))
-        elif right:
-            s.blit(p["h"], (CELL_PX // 2 - 1, 0), (CELL_PX // 2 - 1, 0, CELL_PX // 2 + 1, CELL_PX))
-        if n == 0:
-            s.fill((33, 33, 255), (8, 8, 4, 4))
-    s.set_colorkey((0, 0, 0))
-    _tile_cache[key] = s
-    return s
+def wall_sprite(
+    up, down, left, right, up_left, up_right, down_left, down_right
+):
+    key = (
+        "wall",
+        up,
+        down,
+        left,
+        right,
+        up_left,
+        up_right,
+        down_left,
+        down_right,
+    )
+    if key not in _tile_cache:
+        color = tile(4, 4).get_at((0, 3))[:3]
+        surf = pygame.Surface((CELL_PX, CELL_PX))
+        surf.fill((0, 0, 0))
+        for x, y in _wall_pixels(*key[1:]):
+            surf.fill(color, (x * PX, y * PX, PX, PX))
+        surf.set_colorkey((0, 0, 0))
+        _tile_cache[key] = surf
+    return _tile_cache[key]
+
+
+DEATH_COLS = tuple(range(3, 14))
+DEATH_FREEZE_MS = 150
+DEATH_FRAME_MS = 150
+DEATH_END_PAUSE_MS = 400
+DEATH_TOTAL_MS = (
+    DEATH_FREEZE_MS + len(DEATH_COLS) * DEATH_FRAME_MS + DEATH_END_PAUSE_MS
+)
+PLAYER2_RECOLOR = ((255, 255, 0), (0, 255, 255))
+
+
+def death_duration() -> int:
+    return DEATH_TOTAL_MS
+
+
+def death_hides_ghosts(elapsed: int) -> bool:
+    return elapsed >= DEATH_FREEZE_MS
+
+
+def _death_sprite(col: int, recolor=None) -> pygame.Surface:
+    key = ("death", col, recolor)
+    if key not in _cache:
+        height = 15 if col == DEATH_COLS[-1] else 14
+        rect = pygame.Rect(ORIGIN[0] + col * CELL - 1, ORIGIN[1], CELL, height)
+        sprite = pygame.Surface((CELL, CELL))
+        sprite.fill((0, 0, 0))
+        sprite.blit(_load_sheet().subsurface(rect), (0, 1))
+        if recolor:
+            _recolor(sprite, *recolor)
+        sprite.set_colorkey((0, 0, 0))
+        _cache[key] = sprite
+    return _cache[key]
+
+
+def pacman_death_frame(elapsed: int, direction: str, player: int = 1):
+    if elapsed < DEATH_FREEZE_MS:
+        return pacman_frame(direction, False, player)
+    index = (elapsed - DEATH_FREEZE_MS) // DEATH_FRAME_MS
+    if index >= len(DEATH_COLS):
+        return None
+    recolor = None if player == 1 else PLAYER2_RECOLOR
+    return _death_sprite(DEATH_COLS[index], recolor)

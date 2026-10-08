@@ -9,6 +9,7 @@ import random
 from .ghosts import Ghost
 from .algo import Algo
 from render.menu import Menu, Button
+from render import sprites
 
 
 class Game:
@@ -26,6 +27,7 @@ class Game:
         self.button = []
         self.focus = 0
         self.pause = False
+        self.pause_start = 0
         self.font = font
         self.surface = surface
         self.entity = []
@@ -44,6 +46,10 @@ class Game:
 
     def resume(self):
         self.pause = False
+        paused_for = pygame.time.get_ticks() - self.pause_start
+        for ent in self.entity:
+            if isinstance(ent, Pacman) and ent.death_start is not None:
+                ent.death_start += paused_for
 
     def add_entity(self, entity: Entity | list):
         if isinstance(entity, list):
@@ -60,6 +66,7 @@ class Game:
                 self.wait = False
             if event.key == pygame.K_ESCAPE:
                 self.pause = True
+                self.pause_start = pygame.time.get_ticks()
         for i, ent in enumerate(self.entity):
             if isinstance(ent, Pacman):
                 entity = self.entity.copy()
@@ -67,6 +74,23 @@ class Game:
                 ent.event(event, entity)
             else:
                 ent.event(event)
+
+    def update_death(self) -> bool:
+        dying = [
+            e
+            for e in self.entity
+            if isinstance(e, Pacman) and e.death_start is not None
+        ]
+        if not dying:
+            return False
+        now = pygame.time.get_ticks()
+        if any(now - p.death_start < sprites.death_duration() for p in dying):
+            return True
+        for p in dying:
+            p.death_start = None
+        if any(p.live > 0 for p in dying):
+            self.reset_positions()
+        return True
 
     def player_dead(self):
         count = 0
@@ -79,6 +103,8 @@ class Game:
     def loop(self):
         if self.end or self.pause or self.wait:
             return
+        if self.update_death():
+            return
         if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
             for ent in self.entity:
                 if isinstance(ent, Pacman):
@@ -88,6 +114,7 @@ class Game:
             return
         pacgum = 0
         from .map import Wall
+
         for i, ent in enumerate(self.entity):
             if isinstance(ent, (PacGum, SuperPacGum)):
                 pacgum += 1
@@ -108,8 +135,7 @@ class Game:
 
                 if ent.hit_ghost:
                     ent.hit_ghost = False
-                    if ent.live > 0:
-                        self.reset_positions()
+                    ent.death_start = pygame.time.get_ticks()
 
                 if ent.frightened_mode:
                     for e in self.entity:
@@ -384,7 +410,16 @@ class Game:
             self.menu.draw()
             return
         w_x, w_y = pygame.display.get_window_size()
+        now = pygame.time.get_ticks()
+        hide_ghosts = any(
+            isinstance(e, Pacman)
+            and e.death_start is not None
+            and sprites.death_hides_ghosts(now - e.death_start)
+            for e in self.entity
+        )
         for ent in self.entity:
+            if hide_ghosts and isinstance(ent, Ghost):
+                continue
             ent.draw(self.surface)
         if not self.wait:
             time = (

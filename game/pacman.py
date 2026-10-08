@@ -16,7 +16,7 @@ class Pacman(Entity):
         font: pygame.font.Font,
         hitbox,
         live,
-        score
+        score,
     ):
         super().__init__(pos, moove, coord, sprite, hitbox, speed=1)
         self.player = player
@@ -34,6 +34,7 @@ class Pacman(Entity):
         self.ghost_multiplier = 1
         self.cheat = False
         self.facing = "right"
+        self.death_start = None
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:
@@ -153,13 +154,23 @@ class Pacman(Entity):
             self.moove = 0, 0
 
     def draw(self, surface: pygame.Surface):
-        if self.live <= 0:
+        if self.live <= 0 and self.death_start is None:
             return
         if sprites.available():
-            self.facing = sprites.direction_from_move(self.moove, self.facing)
-            moving = self.moove != (0, 0)
-            frame = sprites.pacman_frame(self.facing, moving, self.player)
-            surface.blit(frame, self.coord)
+            if self.death_start is not None:
+                elapsed = pygame.time.get_ticks() - self.death_start
+                frame = sprites.pacman_death_frame(
+                    elapsed, self.facing, self.player
+                )
+                if frame:
+                    surface.blit(frame, self.coord)
+            else:
+                self.facing = sprites.direction_from_move(
+                    self.moove, self.facing
+                )
+                moving = self.moove != (0, 0)
+                frame = sprites.pacman_frame(self.facing, moving, self.player)
+                surface.blit(frame, self.coord)
         elif isinstance(self.surface, pygame.Rect):
             if self.player == 1:
                 pygame.draw.rect(surface, "yellow", self.surface)

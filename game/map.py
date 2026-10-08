@@ -37,6 +37,10 @@ class Map:
                             self._is_wall(i + 1, j),
                             self._is_wall(i, j - 1),
                             self._is_wall(i, j + 1),
+                            self._is_wall(i - 1, j - 1),
+                            self._is_wall(i - 1, j + 1),
+                            self._is_wall(i + 1, j - 1),
+                            self._is_wall(i + 1, j + 1),
                         )
                     self.entity.append(
                         Wall(
