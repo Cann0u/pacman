@@ -11,7 +11,7 @@ class Algo:
             return False
         return maze[y][x] != "#"
 
-    def next_move(self, ghost_pos, target_pos, last_direction=None):
+    def next_move(self, ghost_pos, target_pos):
         path = self._shortest_path(ghost_pos, target_pos)
         if not path or len(path) < 2:
             return None

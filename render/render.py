@@ -1,66 +1,61 @@
 import pygame
 import json
-from game.game import Game, End
+from game.game_core import Game, End
 from .parser import Parser
 from .menu import Menu, Button, Image, Text
 
 
 class Render:
-    def __init__(self, file):
+    def __init__(self, file: str):
         pygame.init()
         info = pygame.display.Info()
         self.surface = pygame.display.set_mode(
             (info.current_w, info.current_h)
         )
         pygame.display.set_caption("PACMAN")
-        pygame.RESIZABLE
         self.parser = Parser(file)
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
         self.menu = Menu(
             True,
             self.surface,
-            self.font,
-            self.parser.info.highscore_filename,
+            self.font
         )
-        self.state = self.menu
+        self.state: Menu | Game | End = self.menu
         self.clock = pygame.time.Clock()
 
-    def on_event(self, event: pygame.event.Event):
+    def on_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             self.run = False
         self.state.event(event)
 
-    def on_render(self):
+    def on_render(self) -> None:
         self.state.draw()
         self.clock.tick(60)
 
-    def launch1(self):
+    def launch1(self) -> None:
         self.state = Game(1, True, self.surface, self.font, self.parser.info)
-        w_x, w_y = pygame.display.get_window_size()
 
-    def launch2(self):
+    def launch2(self) -> None:
         self.state = Game(2, True, self.surface, self.font, self.parser.info)
-        w_x, w_y = pygame.display.get_window_size()
 
-    def skip(self):
+    def skip(self) -> None:
         pass
 
-    def highscore(self):
+    def highscore(self) -> None:
         self.state = Menu(
             True,
             self.surface,
-            self.font,
-            self.parser.info.highscore_filename,
+            self.font
         )
         self.state.add_text(Text("HIGHSCORE :", 13, 50))
         try:
             with open(self.parser.info.highscore_filename) as file:
-                dict = json.load(file)
-                for i, user in enumerate(dict["hi_score"]):
+                dico = json.load(file)
+                for i, user in enumerate(dico["hi_score"]):
                     self.state.add_text(
                         Text(
-                            f"{user} : {dict['hi_score'][user]}",
+                            f"{user} : {dico['hi_score'][user]}",
                             20 + 7 * i,
                             50,
                         )
@@ -70,8 +65,8 @@ class Render:
 
         self.state.add_button(Button("BACK", 90, 50, self.start))
 
-    def info(self):
-        self.state = Menu(True, self.surface, self.font, None)
+    def info(self) -> None:
+        self.state = Menu(True, self.surface, self.font)
         texts = [
             "Welcome to pacman.",
             "use wasd to move:",
@@ -89,12 +84,11 @@ class Render:
             self.state.add_text(Text(text, 20 + 5 * i, 50))
         self.state.add_button(Button("BACK", 90, 50, self.start))
 
-    def start(self):
+    def start(self) -> None:
         self.state = Menu(
             True,
             self.surface,
-            self.font,
-            self.parser.info.highscore_filename,
+            self.font
         )
         self.state.add_button(Button("1 PLAYER", 45, 50, self.launch1))
         self.state.add_button(Button("2 PLAYERS", 55, 50, self.launch2))
@@ -105,22 +99,25 @@ class Render:
             Image(pygame.image.load("sprite/canvas.png"), (0, 0), 1.5)
         )
 
-    def on_loop(self):
+    def on_loop(self) -> None:
         self.state.loop()
         if self.state.end:
             if isinstance(self.state, Game):
-                if self.state.end == "end":
-                    self.state = End(self.state, False)
-                if self.state.end == "win":
-                    self.state = End(self.state, True)
-                if self.state.end == "quit":
-                    self.start()
-                return
+                prev_state = self.state
+                match self.state.end:
+                    case "end":
+                        self.state = End(prev_state, False)
+                    case "win":
+                        self.state = End(prev_state, True)
+                    case "quit":
+                        self.start()
+                    case _:
+                        return
             if isinstance(self.state, End):
                 self.start()
                 return
 
-    def on_exec(self):
+    def on_exec(self) -> None:
         self.start()
         while self.run:
             for event in pygame.event.get():
@@ -130,5 +127,5 @@ class Render:
             self.on_render()
             pygame.display.update()
 
-    def quit(self):
+    def quit(self) -> None:
         self.run = False

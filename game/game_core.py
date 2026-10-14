@@ -1,13 +1,13 @@
 import pygame
-from .entity import Entity
-from .pacgum import PacGum
-from .map import Map
-from .pacman import Pacman
+from entity import Entity
+from pacgum import PacGum
+from map import Map
+from pacman import Pacman
 import json
 import mazegen
 import random
-from .ghosts import Ghost
-from .algo import Algo
+from ghosts import Ghost
+from algo import Algo
 from render.menu import Menu, Button
 
 
@@ -21,6 +21,8 @@ class Game:
         info,
     ):
         self.wait = True
+        self.maze = None
+        self.map = None
         self.player = player
         self.state = activate
         self.button = []
@@ -35,7 +37,7 @@ class Game:
         self.time = self.info.level_max_time
         self.start_time = pygame.time.get_ticks()
         self.end = None
-        self.menu = Menu(False, self.surface, self.font, None)
+        self.menu = Menu(False, self.surface, self.font)
         self.menu.add_button(Button("Resume", 50, 50, self.resume))
         self.menu.add_button(Button("Exit", 60, 50, self.quit))
 
@@ -86,7 +88,7 @@ class Game:
         if self.player_dead() == self.player:
             self.end = "end"
             return
-        pacgum = 0
+        pacgum: int = 0
         for i, ent in enumerate(self.entity):
             if isinstance(ent, PacGum):
                 pacgum += 1
@@ -137,7 +139,7 @@ class Game:
                         ]
                         ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
 
-                from .map import Wall
+                from map import Wall
 
                 if isinstance(ent.check_collapse(entity), Wall):
                     continue
@@ -150,9 +152,9 @@ class Game:
             if should_move:
                 ent.moove_on()
 
-        if pacgum == 0:
+        if not pacgum:
             pacman = []
-            while self.entity != []:
+            while self.entity:
                 ent = self.entity.pop()
                 if isinstance(ent, Pacman):
                     pacman.append(ent)
@@ -164,7 +166,8 @@ class Game:
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
-    def closest_valid(self, valid, target):
+    @staticmethod
+    def closest_valid(valid, target):
         t_x, t_y = target
         best = min(
             valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2
@@ -184,9 +187,9 @@ class Game:
 
     def generate_level(
         self,
-        pacman: list[Pacman] = None,
-        ghosts: list[Ghost] = None,
-        seed: int = None,
+        pacman: list[Pacman] | None = None,
+        ghosts: list[Ghost] | None = None,
+        seed: int | None = None,
     ):
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(

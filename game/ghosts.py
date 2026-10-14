@@ -1,5 +1,5 @@
-from .entity import Entity
-from .algo import Algo
+from entity import Entity
+from algo import Algo
 
 DIRECTION_TO_MOOVE = {
     "up": (0, -2),
@@ -42,7 +42,7 @@ class Ghost(Entity):
 
         if self.ghost == INKY:
             ahead_x, ahead_y = p_x + d_x * 2, p_y + d_y * 2
-            blinky = next((g for g in ghosts if g.ghost == BLINKY), None)
+            blinky: Ghost | None = next((g for g in ghosts if g.ghost == BLINKY), None)
             if not blinky:
                 return pacman_pos
             b_x, b_y = blinky.pos
@@ -59,7 +59,7 @@ class Ghost(Entity):
 
     def update_target(self, pacman_pos, pacman_dir=(0, 0), ghosts=None):
         target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
-        direction = self.algo.next_move(self.pos, target, self.direction)
+        direction = self.algo.next_move(self.pos, target)
         if direction:
             self.direction = direction
             self.moove = DIRECTION_TO_MOOVE[direction]

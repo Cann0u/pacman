@@ -1,8 +1,9 @@
+from abc import abstractmethod, ABC
 from typing import Tuple, List
 import pygame
 
 
-class Entity:
+class Entity(ABC):
     def __init__(
         self,
         pos: Tuple,
@@ -60,7 +61,6 @@ class Entity:
     def moove_on(self):
         p_x, p_y = self.coord
         d_x, d_y = self.moove
-        w_x, w_y = pygame.display.get_window_size()
         if p_x + d_x < 0:
             self.coord = 0, d_y + p_y
         elif p_y + d_y < 0:
@@ -70,6 +70,8 @@ class Entity:
         if isinstance(self.surface, pygame.Rect):
             self.surface.left, self.surface.top = self.coord
 
+    @abstractmethod
     def draw(self, surface): ...
 
+    @abstractmethod
     def event(self, event): ...

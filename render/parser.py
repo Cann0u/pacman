@@ -7,7 +7,7 @@ from pydantic import (
     ValidationInfo,
     ValidationError,
 )
-from typing import List
+from typing import List, Any
 
 
 class ParsingError(Exception):
@@ -15,15 +15,15 @@ class ParsingError(Exception):
 
 
 class Parser:
-    def __init__(self, file):
+    def __init__(self, file: str):
         try:
             with open(file) as f:
                 self.info = Info(**json.load(f))
         except Exception as e:
             self.info = Info(
-                level=[{j: 20 for j in ["width", "height"]} for i in range(10)]
+                level=[Level(**{j: 20 for j in ["width", "height"]}) for _ in range(10)]
             )
-            print(f"Error while loding configuration file:\n{e}")
+            print(f"Error while loading configuration file:\n{e}")
 
 
 class Level(BaseModel):
@@ -33,14 +33,17 @@ class Level(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
-    ):
+        cls, v: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+    ) -> Any:
         try:
             return handler(v)
         except (ValueError, ValidationError):
-            field_info = cls.model_fields.get(info.field_name)
+            field_name = info.field_name
+            if not field_name:
+                raise
+            field_info = cls.model_fields.get(field_name)
 
-            if field_info.is_required():
+            if not field_info or field_info.is_required():
                 raise
 
             if field_info.default_factory is not None:
@@ -62,12 +65,17 @@ class Info(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
-    ):
+        cls, v: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+    ) -> Any:
         try:
             return handler(v)
         except (ValueError, ValidationError):
-            field_info = cls.model_fields.get(info.field_name)
+            field_name = info.field_name
+            if not field_name:
+                raise
+            field_info = cls.model_fields.get(field_name)
+            if not field_info:
+                raise
 
             if field_info.default_factory is not None:
                 return field_info.default_factory()

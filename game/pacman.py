@@ -1,21 +1,21 @@
 import pygame
 from .entity import Entity
 from .map import Wall
-from typing import List
+from typing import List, Tuple
 
 
 class Pacman(Entity):
     def __init__(
         self,
-        pos,
-        moove,
-        coord,
-        sprite,
+        pos: Tuple[int, int],
+        moove: Tuple[int, int],
+        coord: Tuple[float, float],
+        sprite: pygame.Surface,
         player: int,
         font: pygame.font.Font,
-        hitbox,
-        live,
-        score
+        hitbox: Tuple[int, int, int, int],
+        live: int,
+        score: int
     ):
         super().__init__(pos, moove, coord, sprite, hitbox)
         self.player = player
@@ -34,13 +34,13 @@ class Pacman(Entity):
         else:
             self.surface = sprite
 
-    def eat_pacgum(self, map):
+    def eat_pacgum(self, map: List[List[str]]) -> None:
         s_x, s_y = self.pos
         if map[s_x][s_y] == "p":
             self.score += 10
             map[s_x][s_y] = "*"
 
-    def event(self, event: pygame.event.Event, entity):
+    def event(self, event: pygame.event.Event, entity: List[Entity]) -> None:
         if event.type == pygame.KEYDOWN:
             match event.key:
                 case pygame.K_c:
@@ -109,7 +109,7 @@ class Pacman(Entity):
                             self.moove = prev
                         self.next = (0, -2)
 
-    def check_next(self, entity):
+    def check_next(self, entity: List[Entity]) -> None:
         m_x, m_y = self.moove
         prev = m_x, m_y
         m_x, m_y = self.next
@@ -120,7 +120,7 @@ class Pacman(Entity):
             if isinstance(ent, Pacman) or isinstance(ent, Wall):
                 self.moove = prev
 
-    def check_entity(self, entity: List[Entity]):
+    def check_entity(self, entity: List[Entity]) -> None:
         ent = self.check_collapse(entity)
         from .pacgum import PacGum
         from .ghosts import Ghost
@@ -134,7 +134,7 @@ class Pacman(Entity):
         if isinstance(ent, Pacman) or isinstance(ent, Wall):
             self.moove = 0, 0
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface) -> None:
         if self.live <= 0:
             return
         if isinstance(self.surface, pygame.Rect):
