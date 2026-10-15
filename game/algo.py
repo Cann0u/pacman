@@ -1,5 +1,5 @@
 from collections import deque
-from map import Map
+from .map import Map
 from typing import Tuple, List
 
 

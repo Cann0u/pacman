@@ -2,12 +2,12 @@ import  pygame
 import  json
 import  mazegen
 import  random
-from    algo           import Algo
-from    entity         import Entity
-from    ghosts         import Ghost
-from    map            import Map
-from    pacgum         import PacGum
-from    pacman         import Pacman
+from    .algo           import Algo
+from    .entity         import Entity
+from    .ghosts         import Ghost
+from    .map            import Map
+from    .pacgum         import PacGum
+from    .pacman         import Pacman
 from    render.menu    import Menu, Button
 from    render.parser  import Info
 from    typing         import List, Tuple
@@ -251,7 +251,7 @@ class Game:
                         ]
                         ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
 
-                from map import Wall
+                from .map import Wall
 
                 if isinstance(ent.check_collapse(entity), Wall):
                     continue

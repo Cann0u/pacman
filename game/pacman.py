@@ -40,7 +40,7 @@ class Pacman(Entity):
             self.score += 10
             map[s_x][s_y] = "*"
 
-    def event(self, event: pygame.event.Event, entity: List[Entity]) -> None:
+    def event(self, event: pygame.event.Event, entity: List[Entity] = []) -> None:
         if event.type == pygame.KEYDOWN:
             match event.key:
                 case pygame.K_c:

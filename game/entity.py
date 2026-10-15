@@ -27,7 +27,7 @@ class Entity(ABC):
         else:
             self.surface = sprite
 
-    def check_collapse(self, entity: List["Entity"]) -> "Entity" | None:
+    def check_collapse(self, entity: List["Entity"]) -> Any | None:
         x, y = self.coord
         m_x, m_y = self.moove
         h_x, h_y = self.hitbox

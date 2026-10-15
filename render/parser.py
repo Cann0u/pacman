@@ -47,7 +47,7 @@ class Level(BaseModel):
                 raise
 
             if field_info.default_factory is not None:
-                return field_info.default_factory()
+                return field_info.default_factory() # type: ignore[call-arg]
             return field_info.default
 
 
@@ -78,5 +78,5 @@ class Info(BaseModel):
                 raise
 
             if field_info.default_factory is not None:
-                return field_info.default_factory()
+                return field_info.default_factory() # type: ignore[call-arg]
             return field_info.default

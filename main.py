@@ -2,7 +2,7 @@ import sys
 from render import Render
 
 
-def main():
+def main() -> None:
     print("Hello from pacman!")
     if len(sys.argv) != 2:
         print("""To few argument, usage:

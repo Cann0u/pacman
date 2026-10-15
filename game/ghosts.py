@@ -1,7 +1,7 @@
 import pygame
 
-from entity import Entity
-from algo import Algo
+from .entity import Entity
+from .algo import Algo
 from typing import List, Tuple
 
 DIRECTION_TO_MOOVE = {
@@ -14,7 +14,7 @@ DIRECTION_TO_MOOVE = {
 BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 
 
-class Ghost(Entity):
+class Ghost(Entity): # type: ignore[misc]
     def __init__(
         self,
         pos: Tuple[int, int],
