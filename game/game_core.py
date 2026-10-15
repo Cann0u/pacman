@@ -23,7 +23,7 @@ class Game:
     ):
         self.wait = True
         self.maze: mazegen.MazeGenerator = None
-        self.map: Map = None
+        self.map: Map = Map([[]])
         self.player = player
         self.state = activate
         self.button: List[Button] = []

@@ -14,7 +14,7 @@ DIRECTION_TO_MOOVE = {
 BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 
 
-class Ghost(Entity): # type: ignore[misc]
+class Ghost(Entity):
     def __init__(
         self,
         pos: Tuple[int, int],
@@ -28,7 +28,7 @@ class Ghost(Entity): # type: ignore[misc]
         super().__init__(pos, (0, 0), coord, sprite, hitbox)
         self.ghost = ghost
         self.algo = algo
-        self.direction = None
+        self.direction: str | None = None
         self.spawn = pos
         self.speed = speed
         self.move_accumulator = 0.0
