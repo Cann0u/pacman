@@ -10,8 +10,7 @@ from pydantic import (
 from typing import List, Any
 
 
-class ParsingError(Exception):
-    ...
+class ParsingError(Exception): ...
 
 
 class Parser:
@@ -21,7 +20,10 @@ class Parser:
                 self.info = Info(**json.load(f))
         except Exception as e:
             self.info = Info(
-                level=[Level(**{j: 20 for j in ["width", "height"]}) for _ in range(10)]
+                level=[
+                    Level(**{j: 20 for j in ["width", "height"]})
+                    for _ in range(10)
+                ]
             )
             print(f"Error while loading configuration file:\n{e}")
 
@@ -33,7 +35,10 @@ class Level(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+        cls,
+        v: Any,
+        handler: ValidatorFunctionWrapHandler,
+        info: ValidationInfo,
     ) -> Any:
         try:
             return handler(v)
@@ -47,7 +52,7 @@ class Level(BaseModel):
                 raise
 
             if field_info.default_factory is not None:
-                return field_info.default_factory() # type: ignore[call-arg]
+                return field_info.default_factory()  # type: ignore[call-arg]
             return field_info.default
 
 
@@ -65,7 +70,10 @@ class Info(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+        cls,
+        v: Any,
+        handler: ValidatorFunctionWrapHandler,
+        info: ValidationInfo,
     ) -> Any:
         try:
             return handler(v)
@@ -78,5 +86,5 @@ class Info(BaseModel):
                 raise
 
             if field_info.default_factory is not None:
-                return field_info.default_factory() # type: ignore[call-arg]
+                return field_info.default_factory()  # type: ignore[call-arg]
             return field_info.default

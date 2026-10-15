@@ -15,7 +15,9 @@ class Algo:
             return True
         return False
 
-    def next_move(self, ghost_pos: Tuple[int, int], target_pos: Tuple[int, int]) -> str | None:
+    def next_move(
+        self, ghost_pos: Tuple[int, int], target_pos: Tuple[int, int]
+    ) -> str | None:
         path = self._shortest_path(ghost_pos, target_pos)
         if not path or len(path) < 2:
             return None
@@ -34,7 +36,9 @@ class Algo:
             return "up"
         return None
 
-    def _shortest_path(self, start: Tuple[int, int], goal: Tuple[int, int]) -> List[Tuple[int, int]]:
+    def _shortest_path(
+        self, start: Tuple[int, int], goal: Tuple[int, int]
+    ) -> List[Tuple[int, int]]:
         if start == goal:
             return [start]
 

@@ -22,8 +22,8 @@ class Ghost(Entity):
         sprite: pygame.Surface,
         ghost: int,
         algo: Algo,
-        hitbox: Tuple[int, int]=(16, 16),
-        speed: float=1.0,
+        hitbox: Tuple[int, int] = (16, 16),
+        speed: float = 1.0,
     ):
         super().__init__(pos, (0, 0), coord, sprite, hitbox)
         self.ghost = ghost
@@ -33,7 +33,12 @@ class Ghost(Entity):
         self.speed = speed
         self.move_accumulator = 0.0
 
-    def compute_target(self, pacman_pos: Tuple[int, int], pacman_dir: Tuple[int, int], ghosts: List["Ghost"]) -> Tuple[int, int]:
+    def compute_target(
+        self,
+        pacman_pos: Tuple[int, int],
+        pacman_dir: Tuple[int, int],
+        ghosts: List["Ghost"],
+    ) -> Tuple[int, int]:
         p_x, p_y = pacman_pos
         d_x, d_y = pacman_dir
 
@@ -45,7 +50,9 @@ class Ghost(Entity):
 
         if self.ghost == INKY:
             ahead_x, ahead_y = p_x + d_x * 2, p_y + d_y * 2
-            blinky: Ghost | None = next((g for g in ghosts if g.ghost == BLINKY), None)
+            blinky: Ghost | None = next(
+                (g for g in ghosts if g.ghost == BLINKY), None
+            )
             if not blinky:
                 return pacman_pos
             b_x, b_y = blinky.pos
@@ -60,7 +67,12 @@ class Ghost(Entity):
 
         return pacman_pos
 
-    def update_target(self, pacman_pos: Tuple[int, int], pacman_dir: Tuple[int, int]=(0, 0), ghosts: List["Ghost"] | None = None) -> None:
+    def update_target(
+        self,
+        pacman_pos: Tuple[int, int],
+        pacman_dir: Tuple[int, int] = (0, 0),
+        ghosts: List["Ghost"] | None = None,
+    ) -> None:
         target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
         direction = self.algo.next_move(self.pos, target)
         if direction:

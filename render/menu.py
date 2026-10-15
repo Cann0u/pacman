@@ -1,8 +1,11 @@
 import pygame
 from typing import Tuple, Callable, List
 
+
 class Image:
-    def __init__(self, image: pygame.Surface, coord: Tuple[float, float] , size : float):
+    def __init__(
+        self, image: pygame.Surface, coord: Tuple[float, float], size: float
+    ):
         self.image_raw = image
         self.coord = coord
         self.w, self.h = self.image_raw.get_size()
@@ -54,7 +57,9 @@ class Text:
 
 
 class Button:
-    def __init__(self, text: str, height: int, width: int, func: Callable[[], None]):
+    def __init__(
+        self, text: str, height: int, width: int, func: Callable[[], None]
+    ):
         self.text = text
         self.width = width
         self.height = height
@@ -84,7 +89,9 @@ class Button:
 
 
 class Menu:
-    def __init__(self, activate: bool, surface: pygame.Surface, font:pygame.font.Font):
+    def __init__(
+        self, activate: bool, surface: pygame.Surface, font: pygame.font.Font
+    ):
         self.state = activate
         self.images: List[Image] = []
         self.button: List[Button] = []

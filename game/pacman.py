@@ -15,7 +15,7 @@ class Pacman(Entity):
         font: pygame.font.Font,
         hitbox: Tuple[int, int],
         live: int,
-        score: int
+        score: int,
     ):
         super().__init__(pos, moove, coord, sprite, hitbox)
         self.player = player
@@ -40,7 +40,9 @@ class Pacman(Entity):
             self.score += 10
             game_map[s_x][s_y] = "*"
 
-    def event(self, event: pygame.event.Event, entity: List[Entity] | None = None) -> None:
+    def event(
+        self, event: pygame.event.Event, entity: List[Entity] | None = None
+    ) -> None:
         if entity is None:
             entity = []
         if event.type == pygame.KEYDOWN:

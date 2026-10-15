@@ -1,16 +1,17 @@
-import  pygame
-import  json
-import  mazegen
-import  random
-from    .algo           import Algo
-from    .entity         import Entity
-from    .ghosts         import Ghost
-from    .map            import Map
-from    .pacgum         import PacGum
-from    .pacman         import Pacman
-from    render.menu    import Menu, Button
-from    render.parser  import Info
-from    typing         import List, Tuple
+import pygame
+import json
+import mazegen
+import random
+from .algo import Algo
+from .entity import Entity
+from .ghosts import Ghost
+from .map import Map
+from .pacgum import PacGum
+from .pacman import Pacman
+from render.menu import Menu, Button
+from render.parser import Info
+from typing import List, Tuple
+
 
 class Game:
     def __init__(
@@ -31,7 +32,7 @@ class Game:
         self.pause = False
         self.font = font
         self.surface = surface
-        self.entity : List[Entity] = []
+        self.entity: List[Entity] = []
         self.info = info
         self.level = 0
         self.generate_level(seed=self.info.seed)
@@ -156,8 +157,7 @@ class Game:
                 PacGum(
                     valid[idc],
                     (0, 0),
-                    (v_x * 20 + m_x + 6,
-                     v_y * 20 + m_y + 6),
+                    (v_x * 20 + m_x + 6, v_y * 20 + m_y + 6),
                     None,
                     self.info.points_per_pacgum,
                     (8, 8),
@@ -279,7 +279,9 @@ class Game:
             self.start_time = pygame.time.get_ticks()
 
     @staticmethod
-    def closest_valid(valid: List[Tuple[int, int]], target: Tuple[int, int]) -> Tuple[int, int]:
+    def closest_valid(
+        valid: List[Tuple[int, int]], target: Tuple[int, int]
+    ) -> Tuple[int, int]:
         t_x, t_y = target
         best = min(
             valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2

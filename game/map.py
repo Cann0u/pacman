@@ -4,7 +4,14 @@ import pygame
 
 
 class Wall(Entity):
-    def __init__(self, pos: Tuple[int, int], moove: Tuple[int, int], coord: Tuple[float, float], sprite: pygame.Surface, hitbox:Tuple[int, int]):
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        moove: Tuple[int, int],
+        coord: Tuple[float, float],
+        sprite: pygame.Surface,
+        hitbox: Tuple[int, int],
+    ):
         super().__init__(pos, moove, coord, sprite, hitbox)
 
     def draw(self, surface: pygame.Surface) -> None:

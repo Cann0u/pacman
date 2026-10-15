@@ -16,11 +16,7 @@ class Render:
         self.parser = Parser(file)
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
-        self.menu = Menu(
-            True,
-            self.surface,
-            self.font
-        )
+        self.menu = Menu(True, self.surface, self.font)
         self.state: Menu | Game | End = self.menu
         self.clock = pygame.time.Clock()
 
@@ -43,11 +39,7 @@ class Render:
         pass
 
     def highscore(self) -> None:
-        self.state = Menu(
-            True,
-            self.surface,
-            self.font
-        )
+        self.state = Menu(True, self.surface, self.font)
         self.state.add_text(Text("HIGHSCORE :", 13, 50))
         try:
             with open(self.parser.info.highscore_filename) as file:
@@ -85,11 +77,7 @@ class Render:
         self.state.add_button(Button("BACK", 90, 50, self.start))
 
     def start(self) -> None:
-        self.state = Menu(
-            True,
-            self.surface,
-            self.font
-        )
+        self.state = Menu(True, self.surface, self.font)
         self.state.add_button(Button("1 PLAYER", 45, 50, self.launch1))
         self.state.add_button(Button("2 PLAYERS", 55, 50, self.launch2))
         self.state.add_button(Button("INFO", 65, 50, self.info))
