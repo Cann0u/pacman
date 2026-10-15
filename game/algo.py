@@ -4,8 +4,8 @@ from typing import Tuple, List
 
 
 class Algo:
-    def __init__(self, map: Map) -> None:
-        self.map = map
+    def __init__(self, game_map: Map) -> None:
+        self.map = game_map
 
     def is_walkable(self, x: int, y: int) -> bool:
         maze = self.map.maze

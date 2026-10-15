@@ -34,13 +34,15 @@ class Pacman(Entity):
         else:
             self.surface = sprite
 
-    def eat_pacgum(self, map: List[List[str]]) -> None:
+    def eat_pacgum(self, game_map: List[List[str]]) -> None:
         s_x, s_y = self.pos
-        if map[s_x][s_y] == "p":
+        if game_map[s_x][s_y] == "p":
             self.score += 10
-            map[s_x][s_y] = "*"
+            game_map[s_x][s_y] = "*"
 
-    def event(self, event: pygame.event.Event, entity: List[Entity] = []) -> None:
+    def event(self, event: pygame.event.Event, entity: List[Entity] | None = None) -> None:
+        if entity is None:
+            entity = []
         if event.type == pygame.KEYDOWN:
             match event.key:
                 case pygame.K_c:
@@ -58,21 +60,21 @@ class Pacman(Entity):
                             self.moove = prev
                         self.next = (2, 0)
                     case pygame.K_LEFT:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (-2, 0)
                         ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (-2, 0)
                     case pygame.K_DOWN:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (0, 2)
                         ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (0, 2)
                     case pygame.K_UP:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (0, -2)
                         ent = self.check_collapse(entity)
                         if ent:
@@ -81,28 +83,28 @@ class Pacman(Entity):
             else:
                 match event.key:
                     case pygame.K_d:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (2, 0)
                         ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (2, 0)
                     case pygame.K_a:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (-2, 0)
                         ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (-2, 0)
                     case pygame.K_s:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (0, 2)
                         ent = self.check_collapse(entity)
                         if ent:
                             self.moove = prev
                         self.next = (0, 2)
                     case pygame.K_w:
-                        prev = m_x, m_y = self.moove
+                        prev = self.moove
                         self.moove = (0, -2)
                         ent = self.check_collapse(entity)
                         if ent:
@@ -113,9 +115,9 @@ class Pacman(Entity):
         m_x, m_y = self.moove
         prev = m_x, m_y
         m_x, m_y = self.next
-        next = m_x, m_y
+        next_move = m_x, m_y
         if m_x != 0 or m_y != 0:
-            self.moove = next
+            self.moove = next_move
             ent = self.check_collapse(entity)
             if isinstance(ent, Pacman) or isinstance(ent, Wall):
                 self.moove = prev
