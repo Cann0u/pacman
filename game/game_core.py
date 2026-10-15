@@ -1,196 +1,65 @@
-import pygame
-from entity import Entity
-from pacgum import PacGum
-from map import Map
-from pacman import Pacman
-import json
-import mazegen
-import random
-from ghosts import Ghost
-from algo import Algo
-from render.menu import Menu, Button
-
+import  pygame
+import  json
+import  mazegen
+import  random
+from    algo           import Algo
+from    entity         import Entity
+from    ghosts         import Ghost
+from    map            import Map
+from    pacgum         import PacGum
+from    pacman         import Pacman
+from    render.menu    import Menu, Button
+from    render.parser  import Info
+from    typing         import List, Tuple
 
 class Game:
     def __init__(
         self,
-        player,
+        player: int,
         activate: bool,
         surface: pygame.Surface,
-        font,
-        info,
+        font: pygame.font.Font,
+        info: Info,
     ):
         self.wait = True
-        self.maze = None
-        self.map = None
+        self.maze: mazegen.MazeGenerator = None
+        self.map: Map = None
         self.player = player
         self.state = activate
-        self.button = []
+        self.button: List[Button] = []
         self.focus = 0
         self.pause = False
         self.font = font
         self.surface = surface
-        self.entity = []
+        self.entity : List[Entity] = []
         self.info = info
         self.level = 0
         self.generate_level(seed=self.info.seed)
         self.time = self.info.level_max_time
         self.start_time = pygame.time.get_ticks()
-        self.end = None
+        self.end: str | None = None
         self.menu = Menu(False, self.surface, self.font)
         self.menu.add_button(Button("Resume", 50, 50, self.resume))
         self.menu.add_button(Button("Exit", 60, 50, self.quit))
 
-    def quit(self):
+    def quit(self) -> None:
         self.end = "quit"
 
-    def resume(self):
+    def resume(self) -> None:
         self.pause = False
 
-    def add_entity(self, entity: Entity | list):
+    def add_entity(self, entity: Entity | List[Entity]) -> None:
         if isinstance(entity, list):
             self.entity += entity
         else:
             self.entity.append(entity)
-
-    def event(self, event):
-        if self.pause:
-            self.menu.event(event)
-            return
-        if event.type == pygame.KEYDOWN:
-            if self.wait:
-                self.wait = False
-            if event.key == pygame.K_ESCAPE:
-                self.pause = True
-        for i, ent in enumerate(self.entity):
-            if isinstance(ent, Pacman):
-                entity = self.entity.copy()
-                entity.pop(i)
-                ent.event(event, entity)
-            else:
-                ent.event(event)
-
-    def player_dead(self):
-        count = 0
-        for ent in self.entity:
-            if isinstance(ent, Pacman):
-                if ent.live <= 0:
-                    count += 1
-        return count
-
-    def loop(self):
-        if self.end or self.pause or self.wait:
-            return
-        if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
-            for ent in self.entity:
-                if isinstance(ent, Pacman):
-                    ent.live -= 1
-        if self.player_dead() == self.player:
-            self.end = "end"
-            return
-        pacgum: int = 0
-        for i, ent in enumerate(self.entity):
-            if isinstance(ent, PacGum):
-                pacgum += 1
-                if ent.taken:
-                    self.entity.pop(i)
-                    continue
-
-            entity = self.entity.copy()
-            entity.pop(i)
-            should_move = True
-
-            if isinstance(ent, Pacman):
-                ent.check_entity(entity)
-                e_x, e_y = ent.coord
-                s_x, s_y = self.map.start
-                ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
-                ent.check_next(entity)
-
-                if ent.hit_ghost:
-                    ent.hit_ghost = False
-                    if ent.live > 0:
-                        self.reset_positions()
-
-            elif isinstance(ent, Ghost):
-                e_x, e_y = ent.coord
-                s_x, s_y = self.map.start
-                ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
-
-                aligned = (e_x - s_x - 2) % 20 == 0 and (
-                    e_y - s_y - 2
-                ) % 20 == 0
-                if aligned:
-                    pacmans = [e for e in entity if isinstance(e, Pacman)]
-                    if pacmans:
-                        g_x, g_y = ent.pos
-                        pacman_ent = min(
-                            pacmans,
-                            key=lambda p: (p.pos[0] - g_x) ** 2
-                            + (p.pos[1] - g_y) ** 2,
-                        )
-                        p_dx, p_dy = pacman_ent.moove
-                        pacman_dir = (
-                            p_dx // 2 if p_dx else 0,
-                            p_dy // 2 if p_dy else 0,
-                        )
-                        ghosts = [
-                            e for e in self.entity if isinstance(e, Ghost)
-                        ]
-                        ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
-
-                from map import Wall
-
-                if isinstance(ent.check_collapse(entity), Wall):
-                    continue
-
-                ent.move_accumulator += ent.speed
-                should_move = ent.move_accumulator >= 1
-                if should_move:
-                    ent.move_accumulator -= 1
-
-            if should_move:
-                ent.moove_on()
-
-        if not pacgum:
-            pacman = []
-            while self.entity:
-                ent = self.entity.pop()
-                if isinstance(ent, Pacman):
-                    pacman.append(ent)
-            self.entity += pacman
-            self.level += 1
-            if self.level == len(self.info.level):
-                self.end = "win"
-                return
-            self.generate_level(pacman)
-            self.start_time = pygame.time.get_ticks()
-
-    @staticmethod
-    def closest_valid(valid, target):
-        t_x, t_y = target
-        best = min(
-            valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2
-        )
-        valid.remove(best)
-        return best
-
-    def get_corners(self):
-        height = len(self.maze.maze)
-        width = len(self.maze.maze[0])
-        return [
-            (0, 0),
-            (width - 1, 0),
-            (0, height - 1),
-            (width - 1, height - 1),
-        ]
 
     def generate_level(
         self,
         pacman: list[Pacman] | None = None,
         ghosts: list[Ghost] | None = None,
         seed: int | None = None,
-    ):
+    ) -> None:
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
                 height=self.info.level[self.level].height,
@@ -296,7 +165,139 @@ class Game:
             )
             valid.pop(idc)
 
-    def check_valid(self):
+    def event(self, event: pygame.event.Event) -> None:
+        if self.pause:
+            self.menu.event(event)
+            return
+        if event.type == pygame.KEYDOWN:
+            if self.wait:
+                self.wait = False
+            if event.key == pygame.K_ESCAPE:
+                self.pause = True
+        for i, ent in enumerate(self.entity):
+            if isinstance(ent, Pacman):
+                entity = self.entity.copy()
+                entity.pop(i)
+                ent.event(event, entity)
+            else:
+                ent.event(event)
+
+    def player_dead(self) -> int:
+        count = 0
+        for ent in self.entity:
+            if isinstance(ent, Pacman):
+                if ent.live <= 0:
+                    count += 1
+        return count
+
+    def loop(self) -> None:
+        if self.end or self.pause or self.wait:
+            return
+        if (pygame.time.get_ticks() - self.start_time) // 1000 > self.time:
+            for ent in self.entity:
+                if isinstance(ent, Pacman):
+                    ent.live -= 1
+        if self.player_dead() == self.player:
+            self.end = "end"
+            return
+        pacgum: int = 0
+        for i, ent in enumerate(self.entity):
+            if isinstance(ent, PacGum):
+                pacgum += 1
+                if ent.taken:
+                    self.entity.pop(i)
+                    continue
+
+            entity = self.entity.copy()
+            entity.pop(i)
+            should_move = True
+
+            if isinstance(ent, Pacman):
+                ent.check_entity(entity)
+                e_x, e_y = ent.coord
+                s_x, s_y = self.map.start
+                ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
+                ent.check_next(entity)
+
+                if ent.hit_ghost:
+                    ent.hit_ghost = False
+                    if ent.live > 0:
+                        self.reset_positions()
+
+            elif isinstance(ent, Ghost):
+                e_x, e_y = ent.coord
+                s_x, s_y = self.map.start
+                ent.pos = int((e_x - s_x) // 20), int((e_y - s_y) // 20)
+
+                aligned = (e_x - s_x - 2) % 20 == 0 and (
+                    e_y - s_y - 2
+                ) % 20 == 0
+                if aligned:
+                    pacmans = [e for e in entity if isinstance(e, Pacman)]
+                    if pacmans:
+                        g_x, g_y = ent.pos
+                        pacman_ent = min(
+                            pacmans,
+                            key=lambda p: (p.pos[0] - g_x) ** 2
+                            + (p.pos[1] - g_y) ** 2,
+                        )
+                        p_dx, p_dy = pacman_ent.moove
+                        pacman_dir = (
+                            p_dx // 2 if p_dx else 0,
+                            p_dy // 2 if p_dy else 0,
+                        )
+                        ghosts = [
+                            e for e in self.entity if isinstance(e, Ghost)
+                        ]
+                        ent.update_target(pacman_ent.pos, pacman_dir, ghosts)
+
+                from map import Wall
+
+                if isinstance(ent.check_collapse(entity), Wall):
+                    continue
+
+                ent.move_accumulator += ent.speed
+                should_move = ent.move_accumulator >= 1
+                if should_move:
+                    ent.move_accumulator -= 1
+
+            if should_move:
+                ent.moove_on()
+
+        if not pacgum:
+            pacman = []
+            while self.entity:
+                ent = self.entity.pop()
+                if isinstance(ent, Pacman):
+                    pacman.append(ent)
+            self.entity += pacman
+            self.level += 1
+            if self.level == len(self.info.level):
+                self.end = "win"
+                return
+            self.generate_level(pacman)
+            self.start_time = pygame.time.get_ticks()
+
+    @staticmethod
+    def closest_valid(valid: List[Tuple[int, int]], target: Tuple[int, int]) -> Tuple[int, int]:
+        t_x, t_y = target
+        best = min(
+            valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2
+        )
+        valid.remove(best)
+        return best
+
+    def get_corners(self) -> List[Tuple[int, int]]:
+        height = len(self.maze.maze)
+        width = len(self.maze.maze[0])
+        return [
+            (0, 0),
+            (width - 1, 0),
+            (0, height - 1),
+            (width - 1, height - 1),
+        ]
+
+    def check_valid(self) -> List[Tuple[int, int]]:
         valid = []
         for i, line in enumerate(self.maze.maze):
             for j, col in enumerate(line):
@@ -310,7 +311,7 @@ class Game:
                         valid.append((j, i))
         return valid
 
-    def reset_positions(self):
+    def reset_positions(self) -> None:
         self.wait = True
         self.start_time = pygame.time.get_ticks()
         c_x, c_y = self.map.start
@@ -328,7 +329,7 @@ class Game:
                 ent.moove = (0, 0)
                 ent.direction = None
 
-    def draw(self):
+    def draw(self) -> None:
         if self.pause:
             self.menu.draw()
             return
@@ -379,9 +380,9 @@ class End:
         except Exception:
             self.d_score = {}
 
-    def loop(self): ...
+    def loop(self) -> None: ...
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 if self.d_score == {}:
@@ -416,7 +417,7 @@ class End:
             if event.key < 255 and len(self.name) < 5:
                 self.name += chr(event.key)
 
-    def draw(self):
+    def draw(self) -> None:
         w_x, w_y = pygame.display.get_window_size()
         if self.win:
             f_x, f_y = self.font.size("Victory")

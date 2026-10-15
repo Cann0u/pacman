@@ -1,5 +1,8 @@
+import pygame
+
 from entity import Entity
 from algo import Algo
+from typing import List, Tuple
 
 DIRECTION_TO_MOOVE = {
     "up": (0, -2),
@@ -14,13 +17,13 @@ BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 class Ghost(Entity):
     def __init__(
         self,
-        pos,
-        coord,
-        sprite,
+        pos: Tuple[int, int],
+        coord: Tuple[int, int],
+        sprite: pygame.Surface,
         ghost: int,
         algo: Algo,
-        hitbox=(16, 16),
-        speed=1.0,
+        hitbox: Tuple[int, int]=(16, 16),
+        speed: float=1.0,
     ):
         super().__init__(pos, (0, 0), coord, sprite, hitbox)
         self.ghost = ghost
@@ -30,7 +33,7 @@ class Ghost(Entity):
         self.speed = speed
         self.move_accumulator = 0.0
 
-    def compute_target(self, pacman_pos, pacman_dir, ghosts):
+    def compute_target(self, pacman_pos: Tuple[int, int], pacman_dir: Tuple[int, int], ghosts: List["Ghost"]) -> Tuple[int, int]:
         p_x, p_y = pacman_pos
         d_x, d_y = pacman_dir
 
@@ -57,14 +60,14 @@ class Ghost(Entity):
 
         return pacman_pos
 
-    def update_target(self, pacman_pos, pacman_dir=(0, 0), ghosts=None):
+    def update_target(self, pacman_pos: Tuple[int, int], pacman_dir: Tuple[int, int]=(0, 0), ghosts: List["Ghost"] | None = None) -> None:
         target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
         direction = self.algo.next_move(self.pos, target)
         if direction:
             self.direction = direction
             self.moove = DIRECTION_TO_MOOVE[direction]
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.Surface) -> None:
         import pygame
 
         colors = {BLINKY: "red", PINKY: "pink", INKY: "cyan", CLYDE: "orange"}
@@ -74,3 +77,5 @@ class Ghost(Entity):
             )
         else:
             surface.blit(self.surface, self.coord)
+
+    def event(self, event: pygame.event.Event) -> None: ...

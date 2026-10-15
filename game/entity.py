@@ -1,27 +1,33 @@
 from abc import abstractmethod, ABC
-from typing import Tuple, List
+from typing import Tuple, List, Any
 import pygame
 
 
 class Entity(ABC):
+    pos: Tuple[int, int]
+    coord: Tuple[float, float]
+    moove: Tuple[int, int]
+    hitbox: Tuple[int, int]
+    surface: pygame.Surface | pygame.Rect
+
     def __init__(
         self,
-        pos: Tuple,
-        moove: Tuple,
-        coord: Tuple,
-        sprite: pygame.Surface = None,
-        hitbox: Tuple = (0, 0),
+        pos: Tuple[int, int],
+        moove: Tuple[int, int],
+        coord: Tuple[float, float],
+        sprite: pygame.Surface | None = None,
+        hitbox: Tuple[int, int] = (0, 0),
     ):
-        self.pos = pos
-        self.coord = coord
-        self.moove = moove
-        self.hitbox = hitbox
+        self.pos: Tuple[int, int] = pos
+        self.coord: Tuple[float, float] = coord
+        self.moove: Tuple[int, int] = moove
+        self.hitbox: Tuple[int, int] = hitbox
         if not sprite:
             self.surface = pygame.Rect(self.coord, self.hitbox)
         else:
             self.surface = sprite
 
-    def check_collapse(self, entity: List):
+    def check_collapse(self, entity: List["Entity"]) -> "Entity" | None:
         x, y = self.coord
         m_x, m_y = self.moove
         h_x, h_y = self.hitbox
@@ -58,7 +64,7 @@ class Entity(ABC):
                         return ent
         return None
 
-    def moove_on(self):
+    def moove_on(self) -> None:
         p_x, p_y = self.coord
         d_x, d_y = self.moove
         if p_x + d_x < 0:
@@ -71,7 +77,7 @@ class Entity(ABC):
             self.surface.left, self.surface.top = self.coord
 
     @abstractmethod
-    def draw(self, surface): ...
+    def draw(self, surface: pygame.Surface) -> None: ...
 
     @abstractmethod
-    def event(self, event): ...
+    def event(self, event: pygame.event.Event) -> None: ...

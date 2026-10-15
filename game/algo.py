@@ -1,17 +1,21 @@
 from collections import deque
+from map import Map
+from typing import Tuple, List
 
 
 class Algo:
-    def __init__(self, map):
+    def __init__(self, map: Map) -> None:
         self.map = map
 
-    def is_walkable(self, x, y):
+    def is_walkable(self, x: int, y: int) -> bool:
         maze = self.map.maze
         if y < 0 or y >= len(maze) or x < 0 or x >= len(maze[0]):
             return False
-        return maze[y][x] != "#"
+        if maze[y][x] != "#":
+            return True
+        return False
 
-    def next_move(self, ghost_pos, target_pos):
+    def next_move(self, ghost_pos: Tuple[int, int], target_pos: Tuple[int, int]) -> str | None:
         path = self._shortest_path(ghost_pos, target_pos)
         if not path or len(path) < 2:
             return None
@@ -30,7 +34,7 @@ class Algo:
             return "up"
         return None
 
-    def _shortest_path(self, start, goal):
+    def _shortest_path(self, start: Tuple[int, int], goal: Tuple[int, int]) -> List[Tuple[int, int]]:
         if start == goal:
             return [start]
 
@@ -57,5 +61,5 @@ class Algo:
         return best_path
 
     @staticmethod
-    def _dist(a, b):
+    def _dist(a: Tuple[int, int], b: Tuple[int, int]) -> int:
         return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2

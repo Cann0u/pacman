@@ -13,7 +13,7 @@ class Pacman(Entity):
         sprite: pygame.Surface,
         player: int,
         font: pygame.font.Font,
-        hitbox: Tuple[int, int, int, int],
+        hitbox: Tuple[int, int],
         live: int,
         score: int
     ):
