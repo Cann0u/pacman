@@ -7,21 +7,30 @@ from pydantic import (
     ValidationInfo,
     ValidationError,
 )
-from typing import List
+from pydantic.fields import FieldInfo
+from typing import Any, List, Optional
 
 
 class ParsingError(Exception):
     ...
 
 
+def _field_info(
+    cls: type[BaseModel], info: ValidationInfo
+) -> Optional[FieldInfo]:
+    if info.field_name is None:
+        return None
+    return cls.model_fields.get(info.field_name)
+
+
 class Parser:
-    def __init__(self, file):
+    def __init__(self, file: str) -> None:
         try:
             with open(file) as f:
                 self.info = Info(**json.load(f))
         except Exception as e:
             self.info = Info(
-                level=[{j: 20 for j in ["width", "height"]} for i in range(10)]
+                level=[Level(width=20, height=20) for _ in range(10)]
             )
             print(f"Error while loding configuration file:\n{e}")
 
@@ -33,19 +42,20 @@ class Level(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
-    ):
+        cls,
+        v: Any,
+        handler: ValidatorFunctionWrapHandler,
+        info: ValidationInfo,
+    ) -> Any:
         try:
             return handler(v)
         except (ValueError, ValidationError):
-            field_info = cls.model_fields.get(info.field_name)
+            field_info = _field_info(cls, info)
 
-            if field_info.is_required():
+            if field_info is None or field_info.is_required():
                 raise
 
-            if field_info.default_factory is not None:
-                return field_info.default_factory()
-            return field_info.default
+            return field_info.get_default(call_default_factory=True)
 
 
 class Info(BaseModel):
@@ -62,13 +72,17 @@ class Info(BaseModel):
     @field_validator("*", mode="wrap")
     @classmethod
     def fallback_all(
-        cls, v, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
-    ):
+        cls,
+        v: Any,
+        handler: ValidatorFunctionWrapHandler,
+        info: ValidationInfo,
+    ) -> Any:
         try:
             return handler(v)
         except (ValueError, ValidationError):
-            field_info = cls.model_fields.get(info.field_name)
+            field_info = _field_info(cls, info)
 
-            if field_info.default_factory is not None:
-                return field_info.default_factory()
-            return field_info.default
+            if field_info is None or field_info.is_required():
+                raise
+
+            return field_info.get_default(call_default_factory=True)

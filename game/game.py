@@ -9,55 +9,58 @@ import random
 from .ghosts import Ghost
 from .algo import Algo
 from render.menu import Menu, Button
-from render import sprites
+from render.sprites import Sprites
+from typing import Any
 
 
 class Game:
     def __init__(
         self,
-        player,
+        player: int,
         activate: bool,
-        surface: pygame.Surface,
-        font,
-        info,
-    ):
+        surface: pygame.surface.Surface,
+        font: pygame.font.Font,
+        info: Any,
+        sprites: Sprites,
+    ) -> None:
         self.wait = True
         self.player = player
         self.state = activate
-        self.button = []
+        self.button: list[Button] = []
         self.focus = 0
         self.pause = False
         self.pause_start = 0
         self.font = font
         self.surface = surface
-        self.entity = []
+        self.entity: list[Entity] = []
         self.info = info
+        self.sprites = sprites
         self.level = 0
         self.generate_level(seed=self.info.seed)
         self.time = self.info.level_max_time
         self.start_time = pygame.time.get_ticks()
-        self.end = None
+        self.end: str | None = None
         self.menu = Menu(False, self.surface, self.font, None)
         self.menu.add_button(Button("Resume", 50, 50, self.resume))
         self.menu.add_button(Button("Exit", 60, 50, self.quit))
 
-    def quit(self):
+    def quit(self) -> None:
         self.end = "quit"
 
-    def resume(self):
+    def resume(self) -> None:
         self.pause = False
         paused_for = pygame.time.get_ticks() - self.pause_start
         for ent in self.entity:
             if isinstance(ent, Pacman) and ent.death_start is not None:
                 ent.death_start += paused_for
 
-    def add_entity(self, entity: Entity | list):
+    def add_entity(self, entity: Entity | list[Entity]) -> None:
         if isinstance(entity, list):
             self.entity += entity
         else:
             self.entity.append(entity)
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if self.pause:
             self.menu.event(event)
             return
@@ -76,15 +79,16 @@ class Game:
                 ent.event(event)
 
     def update_death(self) -> bool:
-        dying = [
-            e
-            for e in self.entity
-            if isinstance(e, Pacman) and e.death_start is not None
-        ]
+        pacmans = [e for e in self.entity if isinstance(e, Pacman)]
+        dying = [p for p in pacmans if p.death_start is not None]
         if not dying:
             return False
         now = pygame.time.get_ticks()
-        if any(now - p.death_start < sprites.death_duration() for p in dying):
+        if any(
+            p.death_start is not None
+            and now - p.death_start < self.sprites.death_duration()
+            for p in dying
+        ):
             return True
         for p in dying:
             p.death_start = None
@@ -92,7 +96,7 @@ class Game:
             self.reset_positions()
         return True
 
-    def player_dead(self):
+    def player_dead(self) -> int:
         count = 0
         for ent in self.entity:
             if isinstance(ent, Pacman):
@@ -100,7 +104,7 @@ class Game:
                     count += 1
         return count
 
-    def loop(self):
+    def loop(self) -> None:
         if self.end or self.pause or self.wait:
             return
         if self.update_death():
@@ -235,7 +239,9 @@ class Game:
             self.generate_level(pacman)
             self.start_time = pygame.time.get_ticks()
 
-    def closest_valid(self, valid, target):
+    def closest_valid(
+        self, valid: list[tuple[int, int]], target: tuple[int, int]
+    ) -> tuple[int, int]:
         t_x, t_y = target
         best = min(
             valid, key=lambda pos: (pos[0] - t_x) ** 2 + (pos[1] - t_y) ** 2
@@ -243,7 +249,7 @@ class Game:
         valid.remove(best)
         return best
 
-    def get_corners(self):
+    def get_corners(self) -> list[tuple[int, int]]:
         height = len(self.maze.maze)
         width = len(self.maze.maze[0])
         return [
@@ -255,10 +261,10 @@ class Game:
 
     def generate_level(
         self,
-        pacman: list[Pacman] = None,
-        ghosts: list[Ghost] = None,
-        seed: int = None,
-    ):
+        pacman: list[Pacman] | None = None,
+        ghosts: list[Ghost] | None = None,
+        seed: int | None = None,
+    ) -> None:
         self.maze = mazegen.MazeGenerator(
             mazegen.MazeConfig(
                 height=self.info.level[self.level].height,
@@ -270,7 +276,7 @@ class Game:
             )
         )
         self.maze.generate()
-        self.map = Map(self.maze.maze)
+        self.map = Map(self.maze.maze, self.sprites)
         self.map.create()
         self.add_entity(self.map.entity)
 
@@ -297,12 +303,12 @@ class Game:
                         ),
                         (0, 0),
                         self.map.start,
-                        None,
                         i,
                         self.font,
                         (16, 16),
                         self.info.lives,
                         0,
+                        self.sprites,
                     )
                 )
         else:
@@ -326,9 +332,9 @@ class Game:
                     Ghost(
                         ghost_spawn,
                         (g_x * 20 + c_x + 2, g_y * 20 + c_y + 2),
-                        None,
                         i,
                         Algo(self.map),
+                        self.sprites,
                         speed=0.75,
                     )
                 )
@@ -337,9 +343,9 @@ class Game:
                         ghost_spawn,
                         (0, 0),
                         (g_x * 20 + c_x + 4, g_y * 20 + c_y + 4),
-                        None,
                         self.info.points_per_super_pacgum,
                         (12, 12),
+                        self.sprites,
                     )
                 )
         else:
@@ -366,15 +372,15 @@ class Game:
                     valid[idc],
                     (0, 0),
                     (v_x * 20 + m_x + 6, v_y * 20 + m_y + 6),
-                    None,
                     self.info.points_per_pacgum,
                     (8, 8),
+                    self.sprites,
                 )
             )
             valid.pop(idc)
 
-    def check_valid(self):
-        valid = []
+    def check_valid(self) -> list[tuple[int, int]]:
+        valid: list[tuple[int, int]] = []
         for i, line in enumerate(self.maze.maze):
             for j, col in enumerate(line):
                 if col == "*":
@@ -387,7 +393,7 @@ class Game:
                         valid.append((j, i))
         return valid
 
-    def reset_positions(self):
+    def reset_positions(self) -> None:
         self.wait = True
         self.start_time = pygame.time.get_ticks()
         c_x, c_y = self.map.start
@@ -405,7 +411,7 @@ class Game:
                 ent.moove = (0, 0)
                 ent.direction = None
 
-    def draw(self):
+    def draw(self) -> None:
         if self.pause:
             self.menu.draw()
             return
@@ -414,7 +420,7 @@ class Game:
         hide_ghosts = any(
             isinstance(e, Pacman)
             and e.death_start is not None
-            and sprites.death_hides_ghosts(now - e.death_start)
+            and self.sprites.death_hides_ghosts(now - e.death_start)
             for e in self.entity
         )
         for ent in self.entity:
@@ -440,7 +446,7 @@ class Game:
 
 
 class End:
-    def __init__(self, state: Game, win: bool):
+    def __init__(self, state: Game, win: bool) -> None:
         self.score = sum(
             [i.score for i in state.entity if isinstance(i, Pacman)]
         )
@@ -465,9 +471,9 @@ class End:
         except Exception:
             self.d_score = {}
 
-    def loop(self): ...
+    def loop(self) -> None: ...
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 if self.d_score == {}:
@@ -499,10 +505,11 @@ class End:
                 with open(self.hi_score, "w") as file:
                     json.dump({"hi_score": self.d_score}, file, indent=4)
                 self.end = True
-            if event.key < 255 and len(self.name) < 5:
-                self.name += chr(event.key)
+            if event.key < 255 and len(self.name) < 10:
+                if chr(event.key).isalnum():
+                    self.name += chr(event.key)
 
-    def draw(self):
+    def draw(self) -> None:
         w_x, w_y = pygame.display.get_window_size()
         if self.win:
             f_x, f_y = self.font.size("Victory")

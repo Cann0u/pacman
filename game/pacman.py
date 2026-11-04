@@ -1,52 +1,53 @@
 import pygame
 from .entity import Entity
 from .map import Wall
-from render import sprites
-from typing import List
+from render.sprites import Sprites
 
 
 class Pacman(Entity):
     def __init__(
         self,
-        pos,
-        moove,
-        coord,
-        sprite,
+        pos: tuple[int, int],
+        moove: tuple[int, int],
+        coord: tuple[float, float],
         player: int,
         font: pygame.font.Font,
-        hitbox,
-        live,
-        score,
-    ):
-        super().__init__(pos, moove, coord, sprite, hitbox, speed=1)
+        hitbox: tuple[int, int],
+        live: int,
+        score: int,
+        sprites: Sprites,
+    ) -> None:
+        super().__init__(pos, moove, coord, hitbox, speed=1)
         self.player = player
         self.score = score
         self.font = font
         x, y = self.pos
-        self.spawn = x, y
+        self.spawn: tuple[int, int] = x, y
         c_x, c_y = self.coord
         self.coord = x * 20 + c_x + 2, y * 20 + c_y + 2
         self.live = live
-        self.next = (0, 0)
+        self.next: tuple[int, int] = (0, 0)
         self.hit_ghost = False
         self.frightened_mode = False
-        self.frightened_start = None
+        self.frightened_start: int | None = None
         self.ghost_multiplier = 1
         self.cheat = False
         self.facing = "right"
-        self.death_start = None
-        if not sprite:
-            self.surface = pygame.Rect(self.coord, self.hitbox)
-        else:
-            self.surface = sprite
+        self.death_start: int | None = None
+        self.surface.topleft = (int(self.coord[0]), int(self.coord[1]))
+        self.sprites = sprites
 
-    def eat_pacgum(self, map):
+    def eat_pacgum(self, map: list[list[str]]) -> None:
         s_x, s_y = self.pos
         if map[s_x][s_y] == "p":
             self.score += 10
             map[s_x][s_y] = "*"
 
-    def event(self, event: pygame.event.Event, entity):
+    def event(
+        self, event: pygame.event.Event, entity: list[Entity] | None = None
+    ) -> None:
+        if entity is None:
+            entity = []
         if event.type == pygame.KEYDOWN:
             match event.key:
                 case pygame.K_c:
@@ -115,7 +116,7 @@ class Pacman(Entity):
                             self.moove = prev
                         self.next = (0, -2)
 
-    def check_next(self, entity):
+    def check_next(self, entity: list[Entity]) -> None:
         m_x, m_y = self.moove
         prev = m_x, m_y
         m_x, m_y = self.next
@@ -126,7 +127,7 @@ class Pacman(Entity):
             if isinstance(ent, Pacman) or isinstance(ent, Wall):
                 self.moove = prev
 
-    def check_entity(self, entity: List[Entity]):
+    def check_entity(self, entity: list[Entity]) -> None:
         ent = self.check_collapse(entity)
         from .pacgum import PacGum, SuperPacGum
         from .ghosts import Ghost
@@ -153,31 +154,30 @@ class Pacman(Entity):
         if isinstance(ent, Pacman) or isinstance(ent, Wall):
             self.moove = 0, 0
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         if self.live <= 0 and self.death_start is None:
             return
-        if sprites.available():
+        if self.sprites.available():
             if self.death_start is not None:
                 elapsed = pygame.time.get_ticks() - self.death_start
-                frame = sprites.pacman_death_frame(
+                frame = self.sprites.pacman_death_frame(
                     elapsed, self.facing, self.player
                 )
                 if frame:
                     surface.blit(frame, self.coord)
             else:
-                self.facing = sprites.direction_from_move(
+                self.facing = self.sprites.direction_from_move(
                     self.moove, self.facing
                 )
                 moving = self.moove != (0, 0)
-                frame = sprites.pacman_frame(self.facing, moving, self.player)
+                frame = self.sprites.pacman_frame(
+                    self.facing, moving, self.player
+                )
                 surface.blit(frame, self.coord)
-        elif isinstance(self.surface, pygame.Rect):
-            if self.player == 1:
-                pygame.draw.rect(surface, "yellow", self.surface)
-            else:
-                pygame.draw.rect(surface, "darkblue", self.surface)
+        elif self.player == 1:
+            pygame.draw.rect(surface, "yellow", self.surface)
         else:
-            surface.blit(self.surface, self.coord)
+            pygame.draw.rect(surface, "darkblue", self.surface)
         w_x, w_y = pygame.display.get_window_size()
         if self.player == 1:
             width = 10

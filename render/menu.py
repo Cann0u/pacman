@@ -1,8 +1,14 @@
 import pygame
+from typing import Callable
 
 
 class Image:
-    def __init__(self, image, coord, size):
+    def __init__(
+        self,
+        image: pygame.surface.Surface,
+        coord: tuple[int, int],
+        size: float,
+    ) -> None:
         self.image_raw = image
         self.coord = coord
         self.w, self.h = self.image_raw.get_size()
@@ -12,7 +18,7 @@ class Image:
         )
         self.w, self.h = self.image.get_size()
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         w_x, w_y = pygame.display.get_window_size()
         x, y = self.coord
         surface.blit(
@@ -31,7 +37,9 @@ class Text:
         self.height = height
         self.focus = False
 
-    def draw(self, surface: pygame.Surface, font: pygame.font.Font):
+    def draw(
+        self, surface: pygame.surface.Surface, font: pygame.font.Font
+    ) -> None:
         w_x, w_y = pygame.display.get_window_size()
         lenght, height = font.size(self.text)
         if self.focus:
@@ -54,14 +62,18 @@ class Text:
 
 
 class Button:
-    def __init__(self, text: str, height: int, width: int, func: callable):
+    def __init__(
+        self, text: str, height: int, width: int, func: Callable[[], object]
+    ):
         self.text = text
         self.width = width
         self.height = height
         self.func = func
         self.focus = False
 
-    def draw(self, surface: pygame.Surface, font: pygame.font.Font):
+    def draw(
+        self, surface: pygame.surface.Surface, font: pygame.font.Font
+    ) -> None:
         w_x, w_y = pygame.display.get_window_size()
         lenght, height = font.size(self.text)
         if self.focus:
@@ -84,29 +96,35 @@ class Button:
 
 
 class Menu:
-    def __init__(self, activate: bool, surface, font, file):
+    def __init__(
+        self,
+        activate: bool,
+        surface: pygame.surface.Surface,
+        font: pygame.font.Font,
+        file: str | None,
+    ) -> None:
         self.state = activate
-        self.images = []
-        self.button = []
+        self.images: list[Image] = []
+        self.button: list[Button] = []
         self.focus = 0
         self.font = font
         self.end = False
         self.surface = surface
-        self.text = []
+        self.text: list[Text] = []
 
-    def loop(self):
+    def loop(self) -> None:
         pass
 
-    def add_button(self, button: Button):
+    def add_button(self, button: Button) -> None:
         self.button.append(button)
 
-    def add_image(self, image: Image):
+    def add_image(self, image: Image) -> None:
         self.images.append(image)
 
-    def add_text(self, text: Button):
+    def add_text(self, text: Text) -> None:
         self.text.append(text)
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         self.button[self.focus].focus = True
         if event.type == pygame.KEYDOWN:
             match event.key:
@@ -124,7 +142,7 @@ class Menu:
                 case pygame.K_SPACE:
                     self.button[self.focus].func()
 
-    def draw(self):
+    def draw(self) -> None:
         w_x, w_y = pygame.display.get_window_size()
         for img in self.images:
             img.draw(self.surface)

@@ -1,17 +1,20 @@
 from collections import deque
+from .map import Map
 
 
 class Algo:
-    def __init__(self, map):
-        self.map = map
+    def __init__(self, map: Map) -> None:
+        self.map: Map = map
 
-    def is_walkable(self, x, y):
+    def is_walkable(self, x: int, y: int) -> bool:
         maze = self.map.maze
         if y < 0 or y >= len(maze) or x < 0 or x >= len(maze[0]):
             return False
         return maze[y][x] != "#"
 
-    def distance_map(self, start):
+    def distance_map(
+        self, start: tuple[int, int]
+    ) -> dict[tuple[int, int], int]:
         dist = {start: 0}
         queue = deque([start])
         while queue:
@@ -22,7 +25,9 @@ class Algo:
                     queue.append(n)
         return dist
 
-    def next_move(self, ghost_pos, target_pos, last_direction=None):
+    def next_move(
+        self, ghost_pos: tuple[int, int], target_pos: tuple[int, int]
+    ) -> str | None:
         path = self._shortest_path(ghost_pos, target_pos)
         if not path or len(path) < 2:
             return None
@@ -41,7 +46,9 @@ class Algo:
             return "up"
         return None
 
-    def flee_target(self, ghost_pos, pacman_pos):
+    def flee_target(
+        self, ghost_pos: tuple[int, int], pacman_pos: tuple[int, int]
+    ) -> tuple[int, int]:
         from_pac = self.distance_map(pacman_pos)
         from_ghost = self.distance_map(ghost_pos)
 
@@ -65,7 +72,9 @@ class Algo:
             neighbors, key=lambda n: from_pac.get(n, 0), default=ghost_pos
         )
 
-    def _shortest_path(self, start, goal):
+    def _shortest_path(
+        self, start: tuple[int, int], goal: tuple[int, int]
+    ) -> list[tuple[int, int]]:
         if start == goal:
             return [start]
 
@@ -92,5 +101,5 @@ class Algo:
         return best_path
 
     @staticmethod
-    def _dist(a, b):
+    def _dist(a: tuple[int, int], b: tuple[int, int]) -> int:
         return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2

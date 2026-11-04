@@ -1,61 +1,62 @@
 from .entity import Entity
-from typing import Tuple
 import pygame
-from render import sprites
+from render.sprites import Sprites
 
 
 class PacGum(Entity):
     def __init__(
         self,
-        pos: Tuple,
-        moove: Tuple,
-        coord: Tuple,
-        sprite: pygame.Surface,
+        pos: tuple[int, int],
+        moove: tuple[int, int],
+        coord: tuple[float, float],
         score: int,
-        hitbox
-    ):
-        super().__init__(pos, moove, coord, sprite, hitbox)
+        hitbox: tuple[int, int],
+        sprites: Sprites,
+    ) -> None:
+        super().__init__(pos, moove, coord, hitbox)
         self.score = score
         self.taken = False
+        self.sprites = sprites
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         if not self.taken:
-            if sprites.tiles_available():
+            if self.sprites.tiles_available():
                 surface.blit(
-                    sprites.pacgum_sprite(),
+                    self.sprites.pacgum_sprite(),
                     (self.coord[0] - 4, self.coord[1] - 4),
                 )
-            elif isinstance(self.surface, pygame.Rect):
-                pygame.draw.rect(surface, "white", self.surface)
             else:
-                surface.blit(self.surface, self.coord)
+                pygame.draw.rect(surface, "white", self.surface)
 
-    def event(self, event): ...
+    def event(
+        self, event: pygame.event.Event, entity: list[Entity] | None = None
+    ) -> None: ...
 
 
 class SuperPacGum(Entity):
     def __init__(
         self,
-        pos: Tuple,
-        moove: Tuple,
-        coord: Tuple,
-        sprite: pygame.Surface,
+        pos: tuple[int, int],
+        moove: tuple[int, int],
+        coord: tuple[float, float],
         score: int,
-        hitbox
-    ):
-        super().__init__(pos, moove, coord, sprite, hitbox)
+        hitbox: tuple[int, int],
+        sprites: Sprites,
+    ) -> None:
+        super().__init__(pos, moove, coord, hitbox)
         self.score = score
         self.taken = False
+        self.sprites = sprites
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         if not self.taken:
-            if sprites.tiles_available():
-                frame = sprites.super_pacgum_sprite()
+            if self.sprites.tiles_available():
+                frame = self.sprites.super_pacgum_sprite()
                 if frame:
                     surface.blit(frame, self.coord)
-            elif isinstance(self.surface, pygame.Rect):
-                pygame.draw.rect(surface, "red", self.surface)
             else:
-                surface.blit(self.surface, self.coord)
+                pygame.draw.rect(surface, "red", self.surface)
 
-    def event(self, event): ...
+    def event(
+        self, event: pygame.event.Event, entity: list[Entity] | None = None
+    ) -> None: ...

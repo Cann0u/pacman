@@ -1,38 +1,47 @@
 from typing import List
 from .entity import Entity
 import pygame
-from render import sprites
+from render.sprites import Sprites
 
 
 class Wall(Entity):
-    def __init__(self, pos, moove, coord, sprite, hitbox):
-        super().__init__(pos, moove, coord, sprite, hitbox)
+    def __init__(
+        self,
+        pos: tuple[int, int],
+        moove: tuple[int, int],
+        coord: tuple[float, float],
+        sprite: pygame.surface.Surface | None,
+        hitbox: tuple[int, int],
+    ) -> None:
+        super().__init__(pos, moove, coord, hitbox)
+        self.sprite = sprite
 
-    def draw(self, surface):
-        if isinstance(self.surface, pygame.Rect):
-            pygame.draw.rect(surface, "lightblue", self.surface)
+    def draw(self, surface: pygame.surface.Surface) -> None:
+        if self.sprite:
+            surface.blit(self.sprite, self.coord)
         else:
-            surface.blit(self.surface, self.coord)
+            pygame.draw.rect(surface, "lightblue", self.surface)
 
 
 class Map:
-    def __init__(self, maze: List[List[str]]):
+    def __init__(self, maze: List[List[str]], sprites: Sprites):
         self.maze = maze
-        self.entity = []
+        self.entity: List[Entity] = []
         w_x, w_y = pygame.display.get_window_size()
         self.start = (
             w_x / 2 - len(self.maze[0]) / 2 * 20,
             w_y / 2 - len(self.maze) / 2 * 20,
         )
+        self.sprites = sprites
 
-    def create(self):
+    def create(self) -> None:
         s_x, s_y = self.start
         for i, line in enumerate(self.maze):
             for j, col in enumerate(line):
                 if col == "#":
                     sprite = None
-                    if sprites.tiles_available():
-                        sprite = sprites.wall_sprite(
+                    if self.sprites.tiles_available():
+                        sprite = self.sprites.wall_sprite(
                             self._is_wall(i - 1, j),
                             self._is_wall(i + 1, j),
                             self._is_wall(i, j - 1),

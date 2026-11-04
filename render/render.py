@@ -3,15 +3,17 @@ import json
 from game.game import Game, End
 from .parser import Parser
 from .menu import Menu, Button, Image, Text
+from .sprites import Sprites
 
 
 class Render:
-    def __init__(self, file):
+    def __init__(self, file: str) -> None:
         pygame.init()
         info = pygame.display.Info()
         self.surface = pygame.display.set_mode(
             (info.current_w, info.current_h)
         )
+        self.sprites = Sprites()
         pygame.display.set_caption("PACMAN")
         pygame.RESIZABLE
         self.parser = Parser(file)
@@ -23,30 +25,34 @@ class Render:
             self.font,
             self.parser.info.highscore_filename,
         )
-        self.state = self.menu
+        self.state: Menu | Game | End = self.menu
         self.clock = pygame.time.Clock()
 
-    def on_event(self, event: pygame.event.Event):
+    def on_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             self.run = False
         self.state.event(event)
 
-    def on_render(self):
+    def on_render(self) -> None:
         self.state.draw()
         self.clock.tick(60)
 
-    def launch1(self):
-        self.state = Game(1, True, self.surface, self.font, self.parser.info)
+    def launch1(self) -> None:
+        self.state = Game(
+            1, True, self.surface, self.font, self.parser.info, self.sprites
+        )
         w_x, w_y = pygame.display.get_window_size()
 
-    def launch2(self):
-        self.state = Game(2, True, self.surface, self.font, self.parser.info)
+    def launch2(self) -> None:
+        self.state = Game(
+            2, True, self.surface, self.font, self.parser.info, self.sprites
+        )
         w_x, w_y = pygame.display.get_window_size()
 
-    def skip(self):
+    def skip(self) -> None:
         pass
 
-    def highscore(self):
+    def highscore(self) -> None:
         self.state = Menu(
             True,
             self.surface,
@@ -70,7 +76,7 @@ class Render:
 
         self.state.add_button(Button("BACK", 90, 50, self.start))
 
-    def info(self):
+    def info(self) -> None:
         self.state = Menu(True, self.surface, self.font, None)
         texts = [
             "Welcome to pacman.",
@@ -89,7 +95,7 @@ class Render:
             self.state.add_text(Text(text, 20 + 5 * i, 50))
         self.state.add_button(Button("BACK", 90, 50, self.start))
 
-    def start(self):
+    def start(self) -> None:
         self.state = Menu(
             True,
             self.surface,
@@ -105,22 +111,22 @@ class Render:
             Image(pygame.image.load("sprite/canvas.png"), (0, 0), 1.5)
         )
 
-    def on_loop(self):
+    def on_loop(self) -> None:
         self.state.loop()
         if self.state.end:
             if isinstance(self.state, Game):
                 if self.state.end == "end":
                     self.state = End(self.state, False)
-                if self.state.end == "win":
+                elif self.state.end == "win":
                     self.state = End(self.state, True)
-                if self.state.end == "quit":
+                elif self.state.end == "quit":
                     self.start()
                 return
             if isinstance(self.state, End):
                 self.start()
                 return
 
-    def on_exec(self):
+    def on_exec(self) -> None:
         self.start()
         while self.run:
             for event in pygame.event.get():
@@ -130,5 +136,5 @@ class Render:
             self.on_render()
             pygame.display.update()
 
-    def quit(self):
+    def quit(self) -> None:
         self.run = False

@@ -1,29 +1,25 @@
-from typing import Tuple, List
+from __future__ import annotations
 import pygame
 
 
 class Entity:
     def __init__(
         self,
-        pos: Tuple,
-        moove: Tuple,
-        coord: Tuple,
-        sprite: pygame.Surface = None,
-        hitbox: Tuple = (0, 0),
-        speed=0
-    ):
-        self.pos = pos
-        self.coord = coord
-        self.moove = moove
-        self.hitbox = hitbox
-        self.speed = speed
+        pos: tuple[int, int],
+        moove: tuple[int, int],
+        coord: tuple[float, float],
+        hitbox: tuple[int, int] = (0, 0),
+        speed: float = 0,
+    ) -> None:
+        self.pos: tuple[int, int] = pos
+        self.coord: tuple[float, float] = coord
+        self.moove: tuple[int, int] = moove
+        self.hitbox: tuple[int, int] = hitbox
+        self.speed: float = speed
         self.accu_move = 0
-        if not sprite:
-            self.surface = pygame.Rect(self.coord, self.hitbox)
-        else:
-            self.surface = sprite
+        self.surface = pygame.Rect(self.coord, self.hitbox)
 
-    def check_collapse(self, entity: List):
+    def check_collapse(self, entity: list[Entity]) -> Entity | None:
         x, y = self.coord
         m_x, m_y = self.moove
         h_x, h_y = self.hitbox
@@ -60,7 +56,7 @@ class Entity:
                         return ent
         return None
 
-    def moove_on(self):
+    def moove_on(self) -> None:
         p_x, p_y = self.coord
         d_x, d_y = self.moove
         w_x, w_y = pygame.display.get_window_size()
@@ -70,9 +66,11 @@ class Entity:
             self.coord = d_x + p_x, 0
         else:
             self.coord = d_x + p_x, d_y + p_y
-        if isinstance(self.surface, pygame.Rect):
-            self.surface.left, self.surface.top = self.coord
+        self.surface.left = int(self.coord[0])
+        self.surface.top = int(self.coord[1])
 
-    def draw(self, surface): ...
+    def draw(self, surface: pygame.surface.Surface) -> None: ...
 
-    def event(self, event): ...
+    def event(
+        self, event: pygame.event.Event, entity: list[Entity] | None = None
+    ) -> None: ...

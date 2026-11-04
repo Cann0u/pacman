@@ -1,6 +1,10 @@
+from __future__ import annotations
+
+import pygame
+
 from .entity import Entity
 from .algo import Algo
-from render import sprites
+from render.sprites import Sprites
 
 DIRECTION_TO_MOOVE = {
     "up": (0, -2),
@@ -15,26 +19,32 @@ BLINKY, PINKY, INKY, CLYDE = 1, 2, 3, 4
 class Ghost(Entity):
     def __init__(
         self,
-        pos,
-        coord,
-        sprite,
+        pos: tuple[int, int],
+        coord: tuple[float, float],
         ghost: int,
         algo: Algo,
-        hitbox=(16, 16),
-        speed=1.0,
-    ):
-        super().__init__(pos, (0, 0), coord, sprite, hitbox, speed)
+        sprites: Sprites,
+        hitbox: tuple[int, int] = (16, 16),
+        speed: float = 1.0,
+    ) -> None:
+        super().__init__(pos, (0, 0), coord, hitbox, speed)
         self.ghost = ghost
         self.algo = algo
-        self.direction = None
+        self.direction: str | None = None
         self.spawn = pos
         self.base_speed = speed
         self.move_accumulator = 0.0
         self.frightened = False
         self.ate = False
         self.flash = False
+        self.sprites = sprites
 
-    def compute_target(self, pacman_pos, pacman_dir, ghosts):
+    def compute_target(
+        self,
+        pacman_pos: tuple[int, int],
+        pacman_dir: tuple[int, int],
+        ghosts: list[Ghost],
+    ) -> tuple[int, int]:
         p_x, p_y = pacman_pos
         d_x, d_y = pacman_dir
 
@@ -64,23 +74,28 @@ class Ghost(Entity):
 
         return pacman_pos
 
-    def update_target(self, pacman_pos=(0, 0), pacman_dir=(0, 0), ghosts=None):
+    def update_target(
+        self,
+        pacman_pos: tuple[int, int] = (0, 0),
+        pacman_dir: tuple[int, int] = (0, 0),
+        ghosts: list[Ghost] | None = None,
+    ) -> None:
         if self.ate:
             target = self.spawn
         elif self.frightened:
             target = self.algo.flee_target(self.pos, pacman_pos)
         else:
             target = self.compute_target(pacman_pos, pacman_dir, ghosts or [])
-        direction = self.algo.next_move(self.pos, target, self.direction)
+        direction = self.algo.next_move(self.pos, target)
         if direction:
             self.direction = direction
             self.moove = DIRECTION_TO_MOOVE[direction]
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         import pygame
 
-        if sprites.available():
-            frame = sprites.ghost_frame(
+        if self.sprites.available():
+            frame = self.sprites.ghost_frame(
                 self.ghost,
                 self.direction or "left",
                 self.frightened,
@@ -97,7 +112,4 @@ class Ghost(Entity):
             color = "blue"
         else:
             color = colors.get(self.ghost, "red")
-        if isinstance(self.surface, pygame.Rect):
-            pygame.draw.rect(surface, color, self.surface)
-        else:
-            surface.blit(self.surface, self.coord)
+        pygame.draw.rect(surface, color, self.surface)
