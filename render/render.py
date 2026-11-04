@@ -15,7 +15,6 @@ class Render:
         )
         self.sprites = Sprites()
         pygame.display.set_caption("PACMAN")
-        pygame.RESIZABLE
         self.parser = Parser(file)
         self.run = True
         self.font = pygame.font.Font("font/ARCADE_N.TTF", 32)
@@ -41,13 +40,11 @@ class Render:
         self.state = Game(
             1, True, self.surface, self.font, self.parser.info, self.sprites
         )
-        w_x, w_y = pygame.display.get_window_size()
 
     def launch2(self) -> None:
         self.state = Game(
             2, True, self.surface, self.font, self.parser.info, self.sprites
         )
-        w_x, w_y = pygame.display.get_window_size()
 
     def skip(self) -> None:
         pass
@@ -83,8 +80,8 @@ class Render:
             "use wasd to move or arrows (player 2):",
             "'w' | 'up' go up",
             "'a' | 'left' go left",
-            "'s' | 'right' go right",
-            "'d' | 'down' go down",
+            "'s' | 'down' go down",
+            "'d' | 'right' go right",
             "like the real pacman you die if you hit a ghost",
             "or if the time expire.",
             "Your goal was to eat every pacgum in the level,",

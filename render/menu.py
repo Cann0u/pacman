@@ -143,7 +143,6 @@ class Menu:
                     self.button[self.focus].func()
 
     def draw(self) -> None:
-        w_x, w_y = pygame.display.get_window_size()
         for img in self.images:
             img.draw(self.surface)
         for button in self.button:

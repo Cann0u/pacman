@@ -335,6 +335,7 @@ class Game:
                         i,
                         Algo(self.map),
                         self.sprites,
+                        self.info.points_per_ghost,
                         speed=0.75,
                     )
                 )

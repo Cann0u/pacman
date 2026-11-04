@@ -122,7 +122,6 @@ class Sprites:
     def pacman_frame(
         self, direction: str, moving: bool, player: int = 1
     ) -> pygame.surface.Surface:
-        """Return the current Pac-Man animation frame."""
         if moving:
             step = (
                 pygame.time.get_ticks() // PACMAN_FRAME_MS

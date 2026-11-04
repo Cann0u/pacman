@@ -40,7 +40,6 @@ class Pacman(Entity):
     def eat_pacgum(self, map: list[list[str]]) -> None:
         s_x, s_y = self.pos
         if map[s_x][s_y] == "p":
-            self.score += 10
             map[s_x][s_y] = "*"
 
     def event(
@@ -143,7 +142,7 @@ class Pacman(Entity):
             self.frightened_start = pygame.time.get_ticks()
         if isinstance(ent, Ghost):
             if ent.frightened and not ent.ate:
-                self.score += 200 * self.ghost_multiplier
+                self.score += ent.scores * self.ghost_multiplier
                 self.ghost_multiplier += 1
                 ent.ate = True
 
@@ -178,7 +177,7 @@ class Pacman(Entity):
             pygame.draw.rect(surface, "yellow", self.surface)
         else:
             pygame.draw.rect(surface, "darkblue", self.surface)
-        w_x, w_y = pygame.display.get_window_size()
+        w_x = pygame.display.get_window_size()[0]
         if self.player == 1:
             width = 10
         else:

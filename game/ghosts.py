@@ -24,6 +24,7 @@ class Ghost(Entity):
         ghost: int,
         algo: Algo,
         sprites: Sprites,
+        scores: int,
         hitbox: tuple[int, int] = (16, 16),
         speed: float = 1.0,
     ) -> None:
@@ -38,6 +39,7 @@ class Ghost(Entity):
         self.ate = False
         self.flash = False
         self.sprites = sprites
+        self.scores = scores
 
     def compute_target(
         self,

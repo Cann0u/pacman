@@ -59,7 +59,6 @@ class Entity:
     def moove_on(self) -> None:
         p_x, p_y = self.coord
         d_x, d_y = self.moove
-        w_x, w_y = pygame.display.get_window_size()
         if p_x + d_x < 0:
             self.coord = 0, d_y + p_y
         elif p_y + d_y < 0:
